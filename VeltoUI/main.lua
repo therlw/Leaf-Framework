@@ -1,4 +1,4 @@
--- Velto UI Library (Single File)
+-- Velto UI Library (Complete Single File)
 -- GitHub: https://github.com/therlw/Velto-Framework
 
 local Velto = {}
@@ -91,11 +91,10 @@ local function PlayIntroAnimation(UI, callback)
         tweenOut:Play()
         tweenOut.Completed:Connect(function()
             IntroLabel:Destroy()
-            if callback then callback() end -- Animasyon bittiğinde çağır
+            if callback then callback() end
         end)
     end)
 end
-
 
 -- MAIN WINDOW CREATION
 function Velto:CreateWindow(title, size)
@@ -196,7 +195,6 @@ function Velto:CreateWindow(title, size)
     self.TabContainer = TabContainer
     self.ContentContainer = ContentContainer
 
-    --PlayIntroAnimation(UI)
     return self
 end
 
@@ -361,11 +359,10 @@ function Velto:AddLabel(text)
     return Label
 end
 
--- AUTO RUN kısmını şu şekilde güncelleyin:
+-- MAIN MODULE RETURN
 local VeltoUI = {}
 
--- Intro animasyonunu oynat ve sonrasında pencereyi aç
-local function InitializeUI()
+function VeltoUI.Init()
     local IntroGui = Instance.new("ScreenGui")
     IntroGui.Name = "VeltoIntro"
     IntroGui.ResetOnSpawn = false
@@ -375,16 +372,11 @@ local function InitializeUI()
 
     PlayIntroAnimation(IntroGui, function()
         IntroGui:Destroy()
-        -- Kullanıcının el ile çağırması için VeltoUI objesine window fonksiyonunu ata
-        VeltoUI.CreateWindow = function(title, size)
-            return Velto:CreateWindow(title, size)
-        end
     end)
 end
 
--- Kullanıcıya döndürülecek obje
-VeltoUI.Init = InitializeUI
+function VeltoUI.CreateWindow(title, size)
+    return Velto:CreateWindow(title, size)
+end
 
 return VeltoUI
-
-return Velto
