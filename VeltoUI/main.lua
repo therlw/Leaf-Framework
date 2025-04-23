@@ -132,7 +132,7 @@ function Velto:CreateWindow(title, size)
     TitleBar.Name = "TitleBar"
     TitleBar.Parent = Frame
 
-    CreateCorner(TitleBar, 12)
+    CreateCorner(TitleBar, 10)
 
 
     local TitleLabel = Instance.new("TextLabel")
@@ -156,6 +156,9 @@ function Velto:CreateWindow(title, size)
     CloseButton.TextSize = 18
     CloseButton.BackgroundColor3 = Theme.Secondary
     CloseButton.Parent = TitleBar
+
+    CreateCorner(CloseButton, 10)
+
 
     CloseButton.MouseButton1Click:Connect(function()
         UI:Destroy()
