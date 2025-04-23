@@ -1,55 +1,138 @@
+-- Velto UI Library (Single File)
+-- GitHub: https://github.com/therlw/Velto-Framework
+
 local Velto = {}
 Velto.__index = Velto
 
+-- Services
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
-local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
--- Import modules
-local Theme = require("Themes.Default")
-local IntroAnimation = require("IntroAnimation")
-local Tab = require("Components.Tab")
-local Button = require("Components.Button")
-local Toggle = require("Components.Toggle")
-local Textbox = require("Components.Textbox")
-local Slider = require("Components.Slider")
-local Dropdown = require("Components.Dropdown")
-local Label = require("Components.Label")
+-- THEME CONFIGURATION
+local Theme = {
+    Primary = Color3.fromRGB(30, 30, 40),
+    Secondary = Color3.fromRGB(45, 45, 55),
+    Accent = Color3.fromRGB(0, 170, 255),
+    Text = Color3.fromRGB(240, 240, 240),
+    Disabled = Color3.fromRGB(100, 100, 100),
+    Shadow = Color3.fromRGB(0, 0, 0, 0.5),
+    Success = Color3.fromRGB(0, 200, 0),
+    Warning = Color3.fromRGB(255, 150, 0),
+    Error = Color3.fromRGB(200, 0, 0)
+}
 
--- Utility functions
-local CreateShadow = require("Utilities.Shadow")
-local CreateCorner = require("Utilities.Corner")
-local CreateStroke = require("Utilities.Stroke")
+-- UTILITY FUNCTIONS
+local function CreateShadow(parent)
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "Shadow"
+    shadow.Image = "rbxassetid://1316045217"
+    shadow.ImageColor3 = Theme.Shadow
+    shadow.ImageTransparency = 0.8
+    shadow.ScaleType = Enum.ScaleType.Slice
+    shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+    shadow.Size = UDim2.new(1, 10, 1, 10)
+    shadow.Position = UDim2.new(0, -5, 0, -5)
+    shadow.BackgroundTransparency = 1
+    shadow.Parent = parent
+    return shadow
+end
 
+local function CreateCorner(parent, radius)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, radius or 6)
+    corner.Parent = parent
+    return corner
+end
+
+local function CreateStroke(parent, thickness, color)
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = thickness or 1
+    stroke.Color = color or Theme.Secondary
+    stroke.Parent = parent
+    return stroke
+end
+
+-- INTRO ANIMATION
+local function PlayIntroAnimation(UI)
+    local IntroConfig = {
+        Duration = 1.5,
+        Text = "Made By RLW",
+        TextColor = Color3.fromRGB(255, 255, 255),
+        BackgroundColor = Color3.fromRGB(0, 0, 0),
+        TextSize = 24,
+        Font = Enum.Font.GothamBold
+    }
+
+    local IntroFrame = Instance.new("Frame")
+    IntroFrame.Size = UDim2.new(1, 0, 1, 0)
+    IntroFrame.Position = UDim2.new(0, 0, 0, 0)
+    IntroFrame.BackgroundColor3 = IntroConfig.BackgroundColor
+    IntroFrame.ZIndex = 100
+    IntroFrame.Parent = UI
+    
+    local IntroLabel = Instance.new("TextLabel")
+    IntroLabel.Size = UDim2.new(0, 0, 0, 40)
+    IntroLabel.Position = UDim2.new(0.5, 0, 0.5, -20)
+    IntroLabel.Text = IntroConfig.Text
+    IntroLabel.TextColor3 = IntroConfig.TextColor
+    IntroLabel.Font = IntroConfig.Font
+    IntroLabel.TextSize = IntroConfig.TextSize
+    IntroLabel.BackgroundTransparency = 1
+    IntroLabel.Parent = IntroFrame
+    
+    local introTweenIn = TweenService:Create(IntroLabel, TweenInfo.new(IntroConfig.Duration/2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        Size = UDim2.new(0, 200, 0, 40),
+        Position = UDim2.new(0.5, -100, 0.5, -20)
+    })
+    
+    local introTweenOut = TweenService:Create(IntroFrame, TweenInfo.new(IntroConfig.Duration/2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+        BackgroundTransparency = 1
+    })
+    
+    local introTextTweenOut = TweenService:Create(IntroLabel, TweenInfo.new(IntroConfig.Duration/2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+        TextTransparency = 1
+    })
+    
+    introTweenIn:Play()
+    introTweenIn.Completed:Connect(function()
+        wait(0.5)
+        introTweenOut:Play()
+        introTextTweenOut:Play()
+        introTweenOut.Completed:Connect(function()
+            IntroFrame:Destroy()
+        end)
+    end)
+end
+
+-- MAIN WINDOW CREATION
 function Velto:CreateWindow(title, size)
     local self = setmetatable({}, Velto)
     self.Tabs = {}
     self.CurrentTab = nil
     self.Elements = {}
-    self.TabCount = 0
     
-    -- Create main UI container
+    -- Create UI container
     local UI = Instance.new("ScreenGui")
-    UI.Name = "VeltoUI_" .. title:gsub("%s+", "")
+    UI.Name = "VeltoUI_"..title:gsub("%s+", "")
     UI.ResetOnSpawn = false
     UI.ZIndexBehavior = Enum.ZIndexBehavior.Global
     UI.Parent = CoreGui
-    
-    -- Main window frame
+
+    -- Main frame
     local Frame = Instance.new("Frame")
     Frame.Size = size or UDim2.new(0, 550, 0, 400)
-    Frame.Position = UDim2.new(0.5, -300, 0.5, -225)
+    Frame.Position = UDim2.new(0.5, -275, 0.5, -200)
     Frame.BackgroundColor3 = Theme.Primary
     Frame.Active = true
     Frame.Draggable = true
     Frame.Name = "Main"
     Frame.Parent = UI
-    
+
     CreateShadow(Frame)
     CreateCorner(Frame, 8)
     CreateStroke(Frame, 2, Theme.Accent)
-    
+
     -- Title bar
     local TitleBar = Instance.new("Frame")
     TitleBar.Size = UDim2.new(1, 0, 0, 30)
@@ -57,9 +140,7 @@ function Velto:CreateWindow(title, size)
     TitleBar.BackgroundColor3 = Theme.Secondary
     TitleBar.Name = "TitleBar"
     TitleBar.Parent = Frame
-    
-    CreateCorner(TitleBar, 0)
-    
+
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Size = UDim2.new(1, -40, 1, 0)
     TitleLabel.Position = UDim2.new(0, 10, 0, 0)
@@ -70,7 +151,7 @@ function Velto:CreateWindow(title, size)
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     TitleLabel.BackgroundTransparency = 1
     TitleLabel.Parent = TitleBar
-    
+
     -- Close button
     local CloseButton = Instance.new("TextButton")
     CloseButton.Size = UDim2.new(0, 30, 1, 0)
@@ -81,25 +162,11 @@ function Velto:CreateWindow(title, size)
     CloseButton.TextSize = 18
     CloseButton.BackgroundColor3 = Theme.Secondary
     CloseButton.Parent = TitleBar
-    
-    CreateCorner(CloseButton, 0)
-    
-    CloseButton.MouseEnter:Connect(function()
-        TweenService:Create(CloseButton, TweenInfo.new(0.2), {
-            BackgroundColor3 = Theme.Error
-        }):Play()
-    end)
-    
-    CloseButton.MouseLeave:Connect(function()
-        TweenService:Create(CloseButton, TweenInfo.new(0.2), {
-            BackgroundColor3 = Theme.Secondary
-        }):Play()
-    end)
-    
+
     CloseButton.MouseButton1Click:Connect(function()
         UI:Destroy()
     end)
-    
+
     -- Tab container (vertical)
     local TabContainer = Instance.new("Frame")
     TabContainer.Size = UDim2.new(0, 120, 1, -80)
@@ -107,7 +174,7 @@ function Velto:CreateWindow(title, size)
     TabContainer.BackgroundTransparency = 1
     TabContainer.Name = "TabContainer"
     TabContainer.Parent = Frame
-    
+
     -- Content container
     local ContentContainer = Instance.new("Frame")
     ContentContainer.Size = UDim2.new(1, -140, 1, -80)
@@ -116,8 +183,8 @@ function Velto:CreateWindow(title, size)
     ContentContainer.Name = "ContentContainer"
     ContentContainer.ClipsDescendants = true
     ContentContainer.Parent = Frame
-    
-    -- Scroll frame for content
+
+    -- Scroll frame
     local ScrollFrame = Instance.new("ScrollingFrame")
     ScrollFrame.Size = UDim2.new(1, 0, 1, 0)
     ScrollFrame.Position = UDim2.new(0, 0, 0, 0)
@@ -127,35 +194,179 @@ function Velto:CreateWindow(title, size)
     ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
     ScrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
     ScrollFrame.Parent = ContentContainer
-    
-    -- UI Stroke for content area
-    local ContentStroke = Instance.new("UIStroke")
-    ContentStroke.Thickness = 1
-    ContentStroke.Color = Theme.Secondary
-    ContentStroke.Parent = ContentContainer
-    
+
+    CreateStroke(ContentContainer, 1, Theme.Secondary)
     CreateCorner(ContentContainer, 6)
-    
+
     self.UI = UI
     self.Main = Frame
-    self.TitleBar = TitleBar
+    self.ScrollFrame = ScrollFrame
     self.TabContainer = TabContainer
     self.ContentContainer = ContentContainer
-    self.ScrollFrame = ScrollFrame
-    
-    -- Play intro animation
-    IntroAnimation:Play(UI)
-    
+
+    PlayIntroAnimation(UI)
     return self
 end
 
--- Attach component methods
-Velto.CreateTab = Tab.Create
-Velto.AddButton = Button.Add
-Velto.AddToggle = Toggle.Add
-Velto.AddTextbox = Textbox.Add
-Velto.AddSlider = Slider.Add
-Velto.AddDropdown = Dropdown.Add
-Velto.AddLabel = Label.Add
+-- TAB CREATION
+function Velto:CreateTab(tabName)
+    local Tab = {}
+    Tab.Elements = {}
+    Tab.Index = #self.Tabs + 1
+    
+    local TabButton = Instance.new("TextButton")
+    TabButton.Size = UDim2.new(1, -10, 0, 35)
+    TabButton.Position = UDim2.new(0, 5, 0, (Tab.Index - 1) * 40)
+    TabButton.Text = tabName
+    TabButton.BackgroundColor3 = Theme.Secondary
+    TabButton.TextColor3 = Theme.Text
+    TabButton.Font = Enum.Font.GothamBold
+    TabButton.TextSize = 14
+    TabButton.Parent = self.TabContainer
+
+    CreateCorner(TabButton, 6)
+    CreateStroke(TabButton, 1, Theme.Accent)
+
+    -- Highlight
+    local Highlight = Instance.new("Frame")
+    Highlight.Size = UDim2.new(0, 3, 1, 0)
+    Highlight.Position = UDim2.new(1, -3, 0, 0)
+    Highlight.BackgroundColor3 = Theme.Accent
+    Highlight.Visible = (#self.Tabs == 0)
+    Highlight.Parent = TabButton
+
+    -- Content frame
+    local Content = Instance.new("Frame")
+    Content.Size = UDim2.new(1, 0, 1, 0)
+    Content.Position = UDim2.new(0, 0, 0, 0)
+    Content.BackgroundTransparency = 1
+    Content.Visible = (#self.Tabs == 0)
+    Content.Parent = self.ScrollFrame
+
+    -- Tab click handler
+    TabButton.MouseButton1Click:Connect(function()
+        for _, t in pairs(self.Tabs) do
+            t.Content.Visible = false
+            t.Highlight.Visible = false
+            t.Button.BackgroundColor3 = Theme.Secondary
+        end
+        
+        Content.Visible = true
+        Highlight.Visible = true
+        TabButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+        self.CurrentTab = Tab
+    end)
+
+    Tab.Button = TabButton
+    Tab.Highlight = Highlight
+    Tab.Content = Content
+
+    table.insert(self.Tabs, Tab)
+    return setmetatable(Tab, {__index = self})
+end
+
+-- BUTTON COMPONENT
+function Velto:AddButton(name, callback)
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(1, -20, 0, 30)
+    Button.Position = UDim2.new(0, 10, 0, #self.Elements * 40)
+    Button.Text = name
+    Button.TextColor3 = Theme.Text
+    Button.Font = Enum.Font.GothamBold
+    Button.TextSize = 14
+    Button.BackgroundColor3 = Theme.Accent
+    Button.Parent = self.Content
+
+    CreateCorner(Button, 6)
+    CreateStroke(Button, 1, Theme.Secondary)
+
+    Button.MouseButton1Click:Connect(function()
+        if callback then pcall(callback) end
+    end)
+
+    -- Hover effects
+    Button.MouseEnter:Connect(function()
+        TweenService:Create(Button, TweenInfo.new(0.2), {
+            BackgroundColor3 = Color3.fromRGB(0, 190, 255)
+        }):Play()
+    end)
+
+    Button.MouseLeave:Connect(function()
+        TweenService:Create(Button, TweenInfo.new(0.2), {
+            BackgroundColor3 = Theme.Accent
+        }):Play()
+    end)
+
+    table.insert(self.Elements, Button)
+    return Button
+end
+
+-- TOGGLE COMPONENT
+function Velto:AddToggle(name, defaultValue, callback)
+    local state = defaultValue or false
+    
+    local ToggleFrame = Instance.new("Frame")
+    ToggleFrame.Size = UDim2.new(1, -20, 0, 30)
+    ToggleFrame.Position = UDim2.new(0, 10, 0, #self.Elements * 40)
+    ToggleFrame.BackgroundTransparency = 1
+    ToggleFrame.Parent = self.Content
+    
+    local ToggleLabel = Instance.new("TextLabel")
+    ToggleLabel.Size = UDim2.new(0.7, 0, 1, 0)
+    ToggleLabel.Position = UDim2.new(0, 0, 0, 0)
+    ToggleLabel.Text = name
+    ToggleLabel.Font = Enum.Font.Gotham
+    ToggleLabel.TextSize = 14
+    ToggleLabel.TextColor3 = Theme.Text
+    ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    ToggleLabel.BackgroundTransparency = 1
+    ToggleLabel.Parent = ToggleFrame
+    
+    local ToggleButton = Instance.new("TextButton")
+    ToggleButton.Size = UDim2.new(0, 50, 0, 25)
+    ToggleButton.Position = UDim2.new(1, -50, 0.5, -12.5)
+    ToggleButton.Text = ""
+    ToggleButton.BackgroundColor3 = state and Theme.Success or Color3.fromRGB(70, 70, 70)
+    ToggleButton.Parent = ToggleFrame
+    
+    CreateCorner(ToggleButton, 12)
+    CreateStroke(ToggleButton, 1, Theme.Secondary)
+    
+    local ToggleDot = Instance.new("Frame")
+    ToggleDot.Size = UDim2.new(0, 21, 0, 21)
+    ToggleDot.Position = UDim2.new(0, state and 27 or 2, 0.5, -10.5)
+    ToggleDot.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+    ToggleDot.Parent = ToggleButton
+    
+    CreateCorner(ToggleDot, 12)
+    
+    -- Click handler
+    ToggleButton.MouseButton1Click:Connect(function()
+        state = not state
+        ToggleButton.BackgroundColor3 = state and Theme.Success or Color3.fromRGB(70, 70, 70)
+        ToggleDot.Position = UDim2.new(0, state and 27 or 2, 0.5, -10.5)
+        if callback then pcall(callback, state) end
+    end)
+
+    table.insert(self.Elements, ToggleFrame)
+    return ToggleFrame
+end
+
+-- LABEL COMPONENT
+function Velto:AddLabel(text)
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(1, -20, 0, 20)
+    Label.Position = UDim2.new(0, 10, 0, #self.Elements * 40)
+    Label.Text = text
+    Label.TextColor3 = Theme.Text
+    Label.Font = Enum.Font.Gotham
+    Label.TextSize = 14
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.BackgroundTransparency = 1
+    Label.Parent = self.Content
+    
+    table.insert(self.Elements, Label)
+    return Label
+end
 
 return Velto
