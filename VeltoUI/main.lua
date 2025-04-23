@@ -1,6 +1,4 @@
--- Velto UI Library (Complete Single File)
--- GitHub: https://github.com/therlw/Velto-Framework
-
+-- Velto UI Implementation for Pet Simulator 99
 local Velto = {}
 Velto.__index = Velto
 
@@ -53,49 +51,6 @@ local function CreateStroke(parent, thickness, color)
     return stroke
 end
 
--- INTRO ANIMATION
-local function PlayIntroAnimation(UI, callback)
-    local IntroConfig = {
-        Duration = 3,
-        Text = "Made By RLW",
-        TextColor = Color3.fromRGB(255, 255, 255),
-        TextSize = 24,
-        Font = Enum.Font.GothamBold
-    }
-
-    local IntroLabel = Instance.new("TextLabel")
-    IntroLabel.Size = UDim2.new(0, 0, 0, 40)
-    IntroLabel.Position = UDim2.new(0.5, 0, 0.5, -20)
-    IntroLabel.Text = IntroConfig.Text
-    IntroLabel.TextColor3 = IntroConfig.TextColor
-    IntroLabel.Font = IntroConfig.Font
-    IntroLabel.TextSize = IntroConfig.TextSize
-    IntroLabel.BackgroundTransparency = 1
-    IntroLabel.TextTransparency = 1
-    IntroLabel.ZIndex = 100
-    IntroLabel.Parent = UI
-
-    local tweenIn = TweenService:Create(IntroLabel, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-        Size = UDim2.new(0, 200, 0, 40),
-        Position = UDim2.new(0.5, -100, 0.5, -20),
-        TextTransparency = 0
-    })
-
-    local tweenOut = TweenService:Create(IntroLabel, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-        TextTransparency = 1
-    })
-
-    tweenIn:Play()
-    tweenIn.Completed:Connect(function()
-        task.wait(IntroConfig.Duration)
-        tweenOut:Play()
-        tweenOut.Completed:Connect(function()
-            IntroLabel:Destroy()
-            if callback then callback() end
-        end)
-    end)
-end
-
 -- MAIN WINDOW CREATION
 function Velto:CreateWindow(title, size)
     local self = setmetatable({}, Velto)
@@ -116,11 +71,12 @@ function Velto:CreateWindow(title, size)
     Frame.Position = UDim2.new(0.5, -275, 0.5, -200)
     Frame.BackgroundColor3 = Theme.Primary
     Frame.Active = true
+    Frame.Draggable = true
     Frame.Name = "Main"
     Frame.Parent = UI
 
     CreateShadow(Frame)
-    CreateCorner(Frame, 6)
+    CreateCorner(Frame, 8)
     CreateStroke(Frame, 2, Theme.Accent)
 
     -- Title bar
@@ -130,43 +86,6 @@ function Velto:CreateWindow(title, size)
     TitleBar.BackgroundColor3 = Theme.Secondary
     TitleBar.Name = "TitleBar"
     TitleBar.Parent = Frame
-
-    local dragging = false
-local dragInput, mousePos, framePos
-
-TitleBar.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        mousePos = input.Position
-        framePos = Frame.Position
-
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
-    end
-end)
-
-TitleBar.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        dragInput = input
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        local delta = input.Position - mousePos
-        Frame.Position = UDim2.new(
-            framePos.X.Scale, framePos.X.Offset + delta.X,
-            framePos.Y.Scale, framePos.Y.Offset + delta.Y
-        )
-    end
-end)
-
-
-    CreateCorner(TitleBar, 10)
-
 
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Size = UDim2.new(1, -40, 1, 0)
@@ -189,9 +108,6 @@ end)
     CloseButton.TextSize = 18
     CloseButton.BackgroundColor3 = Theme.Secondary
     CloseButton.Parent = TitleBar
-
-    CreateCorner(CloseButton, 10)
-
 
     CloseButton.MouseButton1Click:Connect(function()
         UI:Destroy()
@@ -398,6 +314,251 @@ function Velto:AddLabel(text)
     return Label
 end
 
+-- SLIDER COMPONENT
+function Velto:AddSlider(name, minValue, maxValue, defaultValue, callback)
+    local value = defaultValue or minValue
+    local sliding = false
+    
+    local SliderFrame = Instance.new("Frame")
+    SliderFrame.Size = UDim2.new(1, -20, 0, 60)
+    SliderFrame.Position = UDim2.new(0, 10, 0, #self.Elements * 40)
+    SliderFrame.BackgroundTransparency = 1
+    SliderFrame.Parent = self.Content
+    
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(1, 0, 0, 20)
+    Label.Position = UDim2.new(0, 0, 0, 0)
+    Label.Text = name .. ": " .. value
+    Label.BackgroundTransparency = 1
+    Label.TextColor3 = Theme.Text
+    Label.Font = Enum.Font.Gotham
+    Label.TextSize = 14
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = SliderFrame
+    
+    local SliderTrack = Instance.new("Frame")
+    SliderTrack.Size = UDim2.new(1, 0, 0, 5)
+    SliderTrack.Position = UDim2.new(0, 0, 0, 30)
+    SliderTrack.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    SliderTrack.Parent = SliderFrame
+    
+    CreateCorner(SliderTrack, 3)
+    
+    local SliderFill = Instance.new("Frame")
+    SliderFill.Size = UDim2.new(0, 0, 1, 0)
+    SliderFill.Position = UDim2.new(0, 0, 0, 0)
+    SliderFill.BackgroundColor3 = Theme.Accent
+    SliderFill.Parent = SliderTrack
+    
+    CreateCorner(SliderFill, 3)
+    
+    local SliderButton = Instance.new("TextButton")
+    SliderButton.Size = UDim2.new(0, 15, 0, 15)
+    SliderButton.Position = UDim2.new(0, -7.5, 0.5, -7.5)
+    SliderButton.Text = ""
+    SliderButton.BackgroundColor3 = Theme.Text
+    SliderButton.Parent = SliderTrack
+    
+    CreateCorner(SliderButton, 7)
+    CreateStroke(SliderButton, 1, Theme.Accent)
+    
+    -- Initialize slider position
+    local function UpdateSlider(pos)
+        local relativeX = math.clamp(pos.X - SliderTrack.AbsolutePosition.X, 0, SliderTrack.AbsoluteSize.X)
+        local percentage = relativeX / SliderTrack.AbsoluteSize.X
+        value = math.floor(minValue + (maxValue - minValue) * percentage)
+        
+        SliderFill.Size = UDim2.new(percentage, 0, 1, 0)
+        SliderButton.Position = UDim2.new(percentage, -7.5, 0.5, -7.5)
+        Label.Text = name .. ": " .. value
+        
+        if callback then
+            pcall(callback, value)
+        end
+    end
+    
+    -- Set initial value
+    if defaultValue then
+        local percentage = (defaultValue - minValue) / (maxValue - minValue)
+        SliderFill.Size = UDim2.new(percentage, 0, 1, 0)
+        SliderButton.Position = UDim2.new(percentage, -7.5, 0.5, -7.5)
+    end
+    
+    -- Mouse interactions
+    SliderButton.MouseButton1Down:Connect(function()
+        sliding = true
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            sliding = false
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if sliding and input.UserInputType == Enum.UserInputType.MouseMovement then
+            UpdateSlider(input.Position)
+        end
+    end)
+    
+    SliderTrack.MouseButton1Down:Connect(function(x, y)
+        UpdateSlider(Vector2.new(x, y))
+    end)
+    
+    table.insert(self.Elements, SliderFrame)
+    return SliderFrame
+end
+
+-- DROPDOWN COMPONENT
+function Velto:AddDropdown(name, options, defaultOption, callback)
+    local selected = defaultOption or options[1]
+    local open = false
+    
+    local DropdownFrame = Instance.new("Frame")
+    DropdownFrame.Size = UDim2.new(1, -20, 0, 60)
+    DropdownFrame.Position = UDim2.new(0, 10, 0, #self.Elements * 40)
+    DropdownFrame.BackgroundTransparency = 1
+    DropdownFrame.Parent = self.Content
+    
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(1, 0, 0, 20)
+    Label.Position = UDim2.new(0, 0, 0, 0)
+    Label.Text = name
+    Label.BackgroundTransparency = 1
+    Label.TextColor3 = Theme.Text
+    Label.Font = Enum.Font.Gotham
+    Label.TextSize = 14
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = DropdownFrame
+    
+    local DropdownButton = Instance.new("TextButton")
+    DropdownButton.Size = UDim2.new(1, 0, 0, 30)
+    DropdownButton.Position = UDim2.new(0, 0, 0, 25)
+    DropdownButton.Text = selected
+    DropdownButton.TextColor3 = Theme.Text
+    DropdownButton.Font = Enum.Font.Gotham
+    DropdownButton.TextSize = 14
+    DropdownButton.TextXAlignment = Enum.TextXAlignment.Left
+    DropdownButton.BackgroundColor3 = Theme.Secondary
+    DropdownButton.Parent = DropdownFrame
+    
+    CreateCorner(DropdownButton, 6)
+    CreateStroke(DropdownButton, 1, Theme.Accent)
+    
+    local DropdownIcon = Instance.new("ImageLabel")
+    DropdownIcon.Size = UDim2.new(0, 20, 0, 20)
+    DropdownIcon.Position = UDim2.new(1, -25, 0.5, -10)
+    DropdownIcon.Image = "rbxassetid://6031090990" -- Down arrow icon
+    DropdownIcon.BackgroundTransparency = 1
+    DropdownIcon.Parent = DropdownButton
+    
+    local DropdownList = Instance.new("Frame")
+    DropdownList.Size = UDim2.new(1, 0, 0, 0)
+    DropdownList.Position = UDim2.new(0, 0, 0, 55)
+    DropdownList.BackgroundColor3 = Theme.Secondary
+    DropdownList.ClipsDescendants = true
+    DropdownList.Visible = false
+    DropdownList.Parent = DropdownFrame
+    
+    CreateCorner(DropdownList, 6)
+    CreateStroke(DropdownList, 1, Theme.Accent)
+    
+    local ListLayout = Instance.new("UIListLayout")
+    ListLayout.Padding = UDim.new(0, 1)
+    ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    ListLayout.Parent = DropdownList
+    
+    -- Create options
+    for i, option in ipairs(options) do
+        local OptionButton = Instance.new("TextButton")
+        OptionButton.Size = UDim2.new(1, 0, 0, 30)
+        OptionButton.Text = option
+        OptionButton.TextColor3 = Theme.Text
+        OptionButton.Font = Enum.Font.Gotham
+        OptionButton.TextSize = 14
+        OptionButton.TextXAlignment = Enum.TextXAlignment.Left
+        OptionButton.BackgroundColor3 = Theme.Secondary
+        OptionButton.LayoutOrder = i
+        OptionButton.Parent = DropdownList
+        
+        OptionButton.MouseButton1Click:Connect(function()
+            selected = option
+            DropdownButton.Text = option
+            ToggleDropdown()
+            
+            if callback then
+                pcall(callback, option)
+            end
+        end)
+        
+        -- Hover effect
+        OptionButton.MouseEnter:Connect(function()
+            TweenService:Create(OptionButton, TweenInfo.new(0.2), {
+                BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+            }):Play()
+        end)
+        
+        OptionButton.MouseLeave:Connect(function()
+            TweenService:Create(OptionButton, TweenInfo.new(0.2), {
+                BackgroundColor3 = Theme.Secondary
+            }):Play()
+        end)
+    end
+    
+    -- Update dropdown list size
+    ListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        DropdownList.Size = UDim2.new(1, 0, 0, ListLayout.AbsoluteContentSize.Y)
+    end)
+    
+    local function ToggleDropdown()
+        open = not open
+        
+        if open then
+            DropdownList.Visible = true
+            TweenService:Create(DropdownIcon, TweenInfo.new(0.2), {
+                Rotation = 180
+            }):Play()
+            
+            TweenService:Create(DropdownList, TweenInfo.new(0.2), {
+                Size = UDim2.new(1, 0, 0, ListLayout.AbsoluteContentSize.Y)
+            }):Play()
+        else
+            TweenService:Create(DropdownIcon, TweenInfo.new(0.2), {
+                Rotation = 0
+            }):Play()
+            
+            TweenService:Create(DropdownList, TweenInfo.new(0.2), {
+                Size = UDim2.new(1, 0, 0, 0)
+            }):Play()
+            
+            wait(0.2)
+            DropdownList.Visible = false
+        end
+    end
+    
+    -- Dropdown button click
+    DropdownButton.MouseButton1Click:Connect(ToggleDropdown)
+    
+    -- Close dropdown when clicking outside
+    local function onInputBegan(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 and open then
+            local mousePos = input.Position
+            local absolutePos = DropdownList.AbsolutePosition
+            local absoluteSize = DropdownList.AbsoluteSize
+            
+            if not (mousePos.X >= absolutePos.X and mousePos.X <= absolutePos.X + absoluteSize.X and
+                   mousePos.Y >= absolutePos.Y and mousePos.Y <= absolutePos.Y + absoluteSize.Y) then
+                ToggleDropdown()
+            end
+        end
+    end
+    
+    UserInputService.InputBegan:Connect(onInputBegan)
+    
+    table.insert(self.Elements, DropdownFrame)
+    return DropdownFrame
+end
+
 -- MAIN MODULE RETURN
 local VeltoUI = {}
 
@@ -409,8 +570,36 @@ function VeltoUI.Init()
     IntroGui.IgnoreGuiInset = true
     IntroGui.Parent = CoreGui
 
-    PlayIntroAnimation(IntroGui, function()
-        IntroGui:Destroy()
+    local IntroLabel = Instance.new("TextLabel")
+    IntroLabel.Size = UDim2.new(0, 0, 0, 40)
+    IntroLabel.Position = UDim2.new(0.5, 0, 0.5, -20)
+    IntroLabel.Text = "Made By RLW"
+    IntroLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    IntroLabel.Font = Enum.Font.GothamBold
+    IntroLabel.TextSize = 24
+    IntroLabel.BackgroundTransparency = 1
+    IntroLabel.TextTransparency = 1
+    IntroLabel.ZIndex = 100
+    IntroLabel.Parent = IntroGui
+
+    local tweenIn = TweenService:Create(IntroLabel, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        Size = UDim2.new(0, 200, 0, 40),
+        Position = UDim2.new(0.5, -100, 0.5, -20),
+        TextTransparency = 0
+    })
+
+    local tweenOut = TweenService:Create(IntroLabel, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+        TextTransparency = 1
+    })
+
+    tweenIn:Play()
+    tweenIn.Completed:Connect(function()
+        task.wait(3)
+        tweenOut:Play()
+        tweenOut.Completed:Connect(function()
+            IntroLabel:Destroy()
+            IntroGui:Destroy()
+        end)
     end)
 end
 
