@@ -196,7 +196,7 @@ function Velto:CreateWindow(title, size)
     self.TabContainer = TabContainer
     self.ContentContainer = ContentContainer
 
-    PlayIntroAnimation(UI)
+    --PlayIntroAnimation(UI)
     return self
 end
 
@@ -361,17 +361,30 @@ function Velto:AddLabel(text)
     return Label
 end
 
--- AUTO RUN: Play intro and create window after animation
-local IntroGui = Instance.new("ScreenGui")
-IntroGui.Name = "VeltoIntro"
-IntroGui.ResetOnSpawn = false
-IntroGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
-IntroGui.IgnoreGuiInset = true
-IntroGui.Parent = CoreGui
+-- AUTO RUN kısmını şu şekilde güncelleyin:
+local VeltoUI = {}
 
-PlayIntroAnimation(IntroGui, function()
-    local window = Velto:CreateWindow("RLW Hub", UDim2.new(0, 600, 0, 400))
-    -- örnek ekleme yapılabilir
-end)
+-- Intro animasyonunu oynat ve sonrasında pencereyi aç
+local function InitializeUI()
+    local IntroGui = Instance.new("ScreenGui")
+    IntroGui.Name = "VeltoIntro"
+    IntroGui.ResetOnSpawn = false
+    IntroGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+    IntroGui.IgnoreGuiInset = true
+    IntroGui.Parent = CoreGui
+
+    PlayIntroAnimation(IntroGui, function()
+        IntroGui:Destroy()
+        -- Kullanıcının el ile çağırması için VeltoUI objesine window fonksiyonunu ata
+        VeltoUI.CreateWindow = function(title, size)
+            return Velto:CreateWindow(title, size)
+        end
+    end)
+end
+
+-- Kullanıcıya döndürülecek obje
+VeltoUI.Init = InitializeUI
+
+return VeltoUI
 
 return Velto
