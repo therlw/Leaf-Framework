@@ -361,4 +361,17 @@ function Velto:AddLabel(text)
     return Label
 end
 
+-- AUTO RUN: Play intro and create window after animation
+local IntroGui = Instance.new("ScreenGui")
+IntroGui.Name = "VeltoIntro"
+IntroGui.ResetOnSpawn = false
+IntroGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+IntroGui.IgnoreGuiInset = true
+IntroGui.Parent = CoreGui
+
+PlayIntroAnimation(IntroGui, function()
+    local window = Velto:CreateWindow("RLW Hub", UDim2.new(0, 600, 0, 400))
+    -- örnek ekleme yapılabilir
+end)
+
 return Velto
