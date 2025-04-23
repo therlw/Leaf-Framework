@@ -132,6 +132,9 @@ function Velto:CreateWindow(title, size)
     TitleBar.Name = "TitleBar"
     TitleBar.Parent = Frame
 
+    CreateCorner(TitleBar, 6)
+
+
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Size = UDim2.new(1, -40, 1, 0)
     TitleLabel.Position = UDim2.new(0, 10, 0, 0)
