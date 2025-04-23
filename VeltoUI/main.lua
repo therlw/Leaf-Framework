@@ -121,7 +121,7 @@ function Velto:CreateWindow(title, size)
     Frame.Parent = UI
 
     CreateShadow(Frame)
-    CreateCorner(Frame, 8)
+    CreateCorner(Frame, 10)
     CreateStroke(Frame, 2, Theme.Accent)
 
     -- Title bar
