@@ -116,7 +116,7 @@ function Velto:CreateWindow(title, size)
     Frame.Position = UDim2.new(0.5, -275, 0.5, -200)
     Frame.BackgroundColor3 = Theme.Primary
     Frame.Active = true
-    Frame.Draggable = true
+    Frame.Draggable = false
     Frame.Name = "Main"
     Frame.Parent = UI
 
@@ -131,6 +131,7 @@ function Velto:CreateWindow(title, size)
     TitleBar.BackgroundColor3 = Theme.Secondary
     TitleBar.Name = "TitleBar"
     TitleBar.Parent = Frame
+    TitleBar.Draggable = true
 
     CreateCorner(TitleBar, 10)
 
