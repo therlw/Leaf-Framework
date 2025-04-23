@@ -116,7 +116,6 @@ function Velto:CreateWindow(title, size)
     Frame.Position = UDim2.new(0.5, -275, 0.5, -200)
     Frame.BackgroundColor3 = Theme.Primary
     Frame.Active = true
-    Frame.Draggable = false
     Frame.Name = "Main"
     Frame.Parent = UI
 
@@ -131,7 +130,40 @@ function Velto:CreateWindow(title, size)
     TitleBar.BackgroundColor3 = Theme.Secondary
     TitleBar.Name = "TitleBar"
     TitleBar.Parent = Frame
-    TitleBar.Draggable = true
+
+    local dragging = false
+local dragInput, mousePos, framePos
+
+TitleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        mousePos = input.Position
+        framePos = Frame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+TitleBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - mousePos
+        Frame.Position = UDim2.new(
+            framePos.X.Scale, framePos.X.Offset + delta.X,
+            framePos.Y.Scale, framePos.Y.Offset + delta.Y
+        )
+    end
+end)
+
 
     CreateCorner(TitleBar, 10)
 
