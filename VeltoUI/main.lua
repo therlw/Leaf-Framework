@@ -56,21 +56,13 @@ end
 -- INTRO ANIMATION
 local function PlayIntroAnimation(UI)
     local IntroConfig = {
-        Duration = 1.5,
+        Duration = 3, -- Yazının kalma süresi
         Text = "Made By RLW",
         TextColor = Color3.fromRGB(255, 255, 255),
-        BackgroundColor = Color3.fromRGB(0, 0, 0),
         TextSize = 24,
         Font = Enum.Font.GothamBold
     }
 
-    local IntroFrame = Instance.new("Frame")
-    IntroFrame.Size = UDim2.new(1, 0, 1, 0)
-    IntroFrame.Position = UDim2.new(0, 0, 0, 0)
-    IntroFrame.BackgroundColor3 = IntroConfig.BackgroundColor
-    IntroFrame.ZIndex = 100
-    IntroFrame.Parent = UI
-    
     local IntroLabel = Instance.new("TextLabel")
     IntroLabel.Size = UDim2.new(0, 0, 0, 40)
     IntroLabel.Position = UDim2.new(0.5, 0, 0.5, -20)
@@ -79,31 +71,30 @@ local function PlayIntroAnimation(UI)
     IntroLabel.Font = IntroConfig.Font
     IntroLabel.TextSize = IntroConfig.TextSize
     IntroLabel.BackgroundTransparency = 1
-    IntroLabel.Parent = IntroFrame
-    
-    local introTweenIn = TweenService:Create(IntroLabel, TweenInfo.new(IntroConfig.Duration/2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+    IntroLabel.TextTransparency = 1
+    IntroLabel.ZIndex = 100
+    IntroLabel.Parent = UI
+
+    local tweenIn = TweenService:Create(IntroLabel, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
         Size = UDim2.new(0, 200, 0, 40),
-        Position = UDim2.new(0.5, -100, 0.5, -20)
+        Position = UDim2.new(0.5, -100, 0.5, -20),
+        TextTransparency = 0
     })
-    
-    local introTweenOut = TweenService:Create(IntroFrame, TweenInfo.new(IntroConfig.Duration/2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-        BackgroundTransparency = 1
-    })
-    
-    local introTextTweenOut = TweenService:Create(IntroLabel, TweenInfo.new(IntroConfig.Duration/2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+
+    local tweenOut = TweenService:Create(IntroLabel, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
         TextTransparency = 1
     })
-    
-    introTweenIn:Play()
-    introTweenIn.Completed:Connect(function()
-        wait(0.5)
-        introTweenOut:Play()
-        introTextTweenOut:Play()
-        introTweenOut.Completed:Connect(function()
-            IntroFrame:Destroy()
+
+    tweenIn:Play()
+    tweenIn.Completed:Connect(function()
+        wait(IntroConfig.Duration)
+        tweenOut:Play()
+        tweenOut.Completed:Connect(function()
+            IntroLabel:Destroy()
         end)
     end)
 end
+
 
 -- MAIN WINDOW CREATION
 function Velto:CreateWindow(title, size)
