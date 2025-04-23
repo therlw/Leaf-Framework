@@ -54,9 +54,9 @@ local function CreateStroke(parent, thickness, color)
 end
 
 -- INTRO ANIMATION
-local function PlayIntroAnimation(UI)
+local function PlayIntroAnimation(UI, callback)
     local IntroConfig = {
-        Duration = 3, -- Yazının kalma süresi
+        Duration = 3,
         Text = "Made By RLW",
         TextColor = Color3.fromRGB(255, 255, 255),
         TextSize = 24,
@@ -87,10 +87,11 @@ local function PlayIntroAnimation(UI)
 
     tweenIn:Play()
     tweenIn.Completed:Connect(function()
-        wait(IntroConfig.Duration)
+        task.wait(IntroConfig.Duration)
         tweenOut:Play()
         tweenOut.Completed:Connect(function()
             IntroLabel:Destroy()
+            if callback then callback() end -- Animasyon bittiğinde çağır
         end)
     end)
 end
