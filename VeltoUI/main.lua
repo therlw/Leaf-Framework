@@ -132,7 +132,7 @@ function Velto:CreateWindow(title, size)
     TitleBar.Name = "TitleBar"
     TitleBar.Parent = Frame
 
-    CreateCorner(TitleBar, 6)
+    CreateCorner(TitleBar, 12)
 
 
     local TitleLabel = Instance.new("TextLabel")
