@@ -237,8 +237,9 @@ function Velto:CreateTab(tabName, iconAssetId)
         Icon.Size = UDim2.new(0, 18, 0, 18)
         Icon.Position = UDim2.new(0, 8, 0.5, -9)
         Icon.Image = iconAssetId
-        Icon.ImageColor3 = Theme.Text
+        Icon.ImageColor3 = Theme.TextDim
         Icon.Parent = TabButton
+        Tab.Icon = Icon
     end
 
     -- Highlight
@@ -263,11 +264,17 @@ function Velto:CreateTab(tabName, iconAssetId)
             t.Content.Visible = false
             t.Highlight.Visible = false
             t.Button.BackgroundColor3 = Theme.Tertiary
+            if t.Icon then
+                t.Icon.ImageColor3 = Theme.TextDim
+            end
         end
         
         Content.Visible = true
         Highlight.Visible = true
         TabButton.BackgroundColor3 = Color3.fromRGB(48, 52, 62)
+        if Tab.Icon then
+            Tab.Icon.ImageColor3 = Theme.Accent
+        end
         self.CurrentTab = Tab
     end)
 
@@ -284,6 +291,14 @@ function Velto:CreateTab(tabName, iconAssetId)
     Tab.AddDropdown = self.AddDropdown
 
     table.insert(self.Tabs, Tab)
+
+    -- If this is the first tab, reflect active visual state
+    if #self.Tabs == 1 then
+        Tab.Button.BackgroundColor3 = Color3.fromRGB(48, 52, 62)
+        if Tab.Icon then
+            Tab.Icon.ImageColor3 = Theme.Accent
+        end
+    end
     return setmetatable(Tab, {__index = self})
 end
 
