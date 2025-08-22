@@ -1,4 +1,4 @@
--- Velto UI Premium Implementation for Pet Simulator 99
+-- Velto UI Ultimate Premium Edition
 local Velto = {}
 Velto.__index = Velto
 
@@ -11,11 +11,11 @@ local RunService = game:GetService("RunService")
 
 -- Premium Theme Configuration
 local Theme = {
-    Primary = Color3.fromRGB(20, 22, 30),          -- Main background
-    Secondary = Color3.fromRGB(30, 33, 43),        -- Secondary elements
-    Tertiary = Color3.fromRGB(40, 44, 56),         -- Tertiary elements
-    Accent = Color3.fromRGB(115, 80, 255),         -- Primary accent (purple)
-    AccentSecondary = Color3.fromRGB(0, 200, 255), -- Secondary accent (cyan)
+    Primary = Color3.fromRGB(20, 22, 30),
+    Secondary = Color3.fromRGB(30, 33, 43),
+    Tertiary = Color3.fromRGB(40, 44, 56),
+    Accent = Color3.fromRGB(115, 80, 255),
+    AccentSecondary = Color3.fromRGB(0, 200, 255),
     Text = Color3.fromRGB(240, 245, 255),
     TextDim = Color3.fromRGB(170, 180, 200),
     Disabled = Color3.fromRGB(100, 110, 130),
@@ -23,7 +23,8 @@ local Theme = {
     Warning = Color3.fromRGB(255, 180, 70),
     Error = Color3.fromRGB(255, 95, 95),
     Light = Color3.fromRGB(240, 245, 255),
-    Dark = Color3.fromRGB(15, 17, 23)
+    Dark = Color3.fromRGB(15, 17, 23),
+    Overlay = Color3.fromRGB(10, 12, 18)
 }
 
 -- Gradient presets
@@ -39,14 +40,20 @@ local Gradients = {
     Secondary = ColorSequence.new{
         ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 33, 43)),
         ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 38, 50))
+    },
+    Premium = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(140, 70, 255)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(115, 80, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(90, 100, 255))
     }
 }
 
 -- Utility functions
-local function CreateGradient(parent, gradientType, rotation)
+local function CreateGradient(parent, gradientType, rotation, transparency)
     local gradient = Instance.new("UIGradient")
     gradient.Rotation = rotation or 90
     gradient.Color = Gradients[gradientType] or Gradients.Main
+    gradient.Transparency = NumberSequence.new(transparency or 0)
     gradient.Parent = parent
     return gradient
 end
@@ -58,6 +65,7 @@ local function CreateRoundedFrame(parent, size, position, radius, transparency, 
     frame.BackgroundColor3 = color or Theme.Primary
     frame.BackgroundTransparency = transparency or 0
     frame.BorderSizePixel = 0
+    frame.ZIndex = 2
     
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, radius or 8)
@@ -70,11 +78,11 @@ local function CreateRoundedFrame(parent, size, position, radius, transparency, 
     return frame, corner
 end
 
-local function CreateShadow(element, intensity, radius)
+local function CreateShadow(element, intensity, radius, color)
     local shadow = Instance.new("ImageLabel")
     shadow.Name = "Shadow"
-    shadow.Image = "rbxassetid://5554236805" -- Soft shadow asset
-    shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    shadow.Image = "rbxassetid://5554236805"
+    shadow.ImageColor3 = color or Color3.fromRGB(0, 0, 0)
     shadow.ImageTransparency = intensity or 0.8
     shadow.ScaleType = Enum.ScaleType.Slice
     shadow.SliceCenter = Rect.new(10, 10, 118, 118)
@@ -127,18 +135,61 @@ local function PulseAnimation(element, minSize, maxSize, duration)
     end)
 end
 
+local function HoverAnimation(element, hoverSize, normalSize, duration)
+    element.MouseEnter:Connect(function()
+        TweenService:Create(element, TweenInfo.new(
+            duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out
+        ), {Size = hoverSize}):Play()
+    end)
+    
+    element.MouseLeave:Connect(function()
+        TweenService:Create(element, TweenInfo.new(
+            duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out
+        ), {Size = normalSize}):Play()
+    end)
+end
+
+-- Water ripple effect
+local function CreateRippleEffect(button)
+    button.MouseButton1Click:Connect(function()
+        local ripple = Instance.new("Frame")
+        ripple.Size = UDim2.new(0, 0, 0, 0)
+        ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
+        ripple.AnchorPoint = Vector2.new(0.5, 0.5)
+        ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        ripple.BackgroundTransparency = 0.8
+        ripple.ZIndex = 5
+        ripple.Parent = button
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(1, 0)
+        corner.Parent = ripple
+        
+        TweenService:Create(ripple, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Size = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1
+        }):Play()
+        
+        delay(0.5, function()
+            ripple:Destroy()
+        end)
+    end)
+end
+
 -- Main Window Creation
 function Velto:CreateWindow(title, size, accentColor)
     local self = setmetatable({}, Velto)
     self.Tabs = {}
     self.CurrentTab = nil
     self.Elements = {}
+    self.Notifications = {}
     self.ConfigPath = "Velto_"..(title:gsub("%s+",""))..".json"
     self.State = { 
         Position = {0.5, -300, 0.5, -200}, 
         Minimized = false, 
         ToggleKey = "RightShift", 
-        Size = {0, 600, 0, 500} 
+        Size = {0, 600, 0, 500},
+        Theme = "Dark"
     }
     
     -- Load saved configuration
@@ -159,6 +210,16 @@ function Velto:CreateWindow(title, size, accentColor)
     UI.ZIndexBehavior = Enum.ZIndexBehavior.Global
     UI.Parent = CoreGui
 
+    -- Background overlay for focus effect
+    local Overlay = Instance.new("Frame")
+    Overlay.Size = UDim2.new(1, 0, 1, 0)
+    Overlay.Position = UDim2.new(0, 0, 0, 0)
+    Overlay.BackgroundColor3 = Theme.Overlay
+    Overlay.BackgroundTransparency = 0.7
+    Overlay.ZIndex = 0
+    Overlay.Visible = false
+    Overlay.Parent = UI
+
     -- Main container with smooth rounded corners
     local MainContainer = Instance.new("Frame")
     MainContainer.Size = size or UDim2.new(0, 600, 0, 500)
@@ -168,6 +229,7 @@ function Velto:CreateWindow(title, size, accentColor)
     )
     MainContainer.BackgroundColor3 = Theme.Primary
     MainContainer.ClipsDescendants = true
+    MainContainer.ZIndex = 2
     MainContainer.Parent = UI
     
     CreateRoundedFrame(MainContainer, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 14)
@@ -180,6 +242,7 @@ function Velto:CreateWindow(title, size, accentColor)
     NavBar.Position = UDim2.new(0, 0, 0, 0)
     NavBar.BackgroundColor3 = Theme.Secondary
     NavBar.BackgroundTransparency = 0
+    NavBar.ZIndex = 3
     NavBar.Parent = MainContainer
     
     CreateRoundedFrame(NavBar, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 14, 0, Theme.Secondary)
@@ -190,19 +253,25 @@ function Velto:CreateWindow(title, size, accentColor)
     Header.Size = UDim2.new(1, 0, 0, 60)
     Header.Position = UDim2.new(0, 0, 0, 0)
     Header.BackgroundTransparency = 1
+    Header.ZIndex = 4
     Header.Parent = NavBar
     
-    -- Logo placeholder
+    -- Animated logo
     local Logo = Instance.new("Frame")
     Logo.Size = UDim2.new(0, 36, 0, 36)
     Logo.Position = UDim2.new(0, 15, 0, 12)
     Logo.BackgroundColor3 = Theme.Accent
+    Logo.ZIndex = 5
     Logo.Parent = Header
     
     CreateRoundedFrame(Logo, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 10)
-    CreateGradient(Logo, "Accent")
+    CreateGradient(Logo, "Premium")
+    CreateShadow(Logo, 0.5, 10, Theme.Accent)
     
-    -- Title text
+    -- Animate logo
+    PulseAnimation(Logo, UDim2.new(0, 36, 0, 36), UDim2.new(0, 40, 0, 40), 3)
+    
+    -- Title text with glow effect
     local Title = Instance.new("TextLabel")
     Title.Size = UDim2.new(1, -60, 1, 0)
     Title.Position = UDim2.new(0, 60, 0, 0)
@@ -212,7 +281,22 @@ function Velto:CreateWindow(title, size, accentColor)
     Title.TextColor3 = Theme.Light
     Title.BackgroundTransparency = 1
     Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.ZIndex = 4
     Title.Parent = Header
+    
+    -- Add text glow
+    local TextGlow = Instance.new("TextLabel")
+    TextGlow.Size = Title.Size
+    TextGlow.Position = Title.Position
+    TextGlow.Text = title
+    TextGlow.Font = Enum.Font.GothamBold
+    TextGlow.TextSize = 20
+    TextGlow.TextColor3 = Theme.Accent
+    TextGlow.TextTransparency = 0.8
+    TextGlow.BackgroundTransparency = 1
+    TextGlow.TextXAlignment = Enum.TextXAlignment.Left
+    TextGlow.ZIndex = 3
+    TextGlow.Parent = Header
     
     -- Tab container
     local TabContainer = Instance.new("ScrollingFrame")
@@ -222,6 +306,7 @@ function Velto:CreateWindow(title, size, accentColor)
     TabContainer.ScrollBarThickness = 0
     TabContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
     TabContainer.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    TabContainer.ZIndex = 3
     TabContainer.Parent = NavBar
     
     local TabListLayout = Instance.new("UIListLayout")
@@ -235,6 +320,7 @@ function Velto:CreateWindow(title, size, accentColor)
     ContentArea.Position = UDim2.new(0, 190, 0, 10)
     ContentArea.BackgroundColor3 = Theme.Primary
     ContentArea.BackgroundTransparency = 1
+    ContentArea.ZIndex = 2
     ContentArea.Parent = MainContainer
     
     -- Tab content container
@@ -243,6 +329,7 @@ function Velto:CreateWindow(title, size, accentColor)
     TabContent.Position = UDim2.new(0, 0, 0, 0)
     TabContent.BackgroundTransparency = 1
     TabContent.ClipsDescendants = true
+    TabContent.ZIndex = 2
     TabContent.Parent = ContentArea
     
     -- Window controls
@@ -250,6 +337,7 @@ function Velto:CreateWindow(title, size, accentColor)
     Controls.Size = UDim2.new(0, 80, 0, 30)
     Controls.Position = UDim2.new(1, -90, 0, 15)
     Controls.BackgroundTransparency = 1
+    Controls.ZIndex = 5
     Controls.Parent = MainContainer
     
     -- Minimize button
@@ -259,6 +347,7 @@ function Velto:CreateWindow(title, size, accentColor)
     MinimizeBtn.Image = "rbxassetid://6031094678"
     MinimizeBtn.ImageColor3 = Theme.TextDim
     MinimizeBtn.BackgroundTransparency = 1
+    MinimizeBtn.ZIndex = 6
     MinimizeBtn.Parent = Controls
     
     -- Close button
@@ -268,6 +357,7 @@ function Velto:CreateWindow(title, size, accentColor)
     CloseBtn.Image = "rbxassetid://6031094678"
     CloseBtn.ImageColor3 = Theme.TextDim
     CloseBtn.BackgroundTransparency = 1
+    CloseBtn.ZIndex = 6
     CloseBtn.Parent = Controls
     
     -- Window dragging
@@ -359,6 +449,10 @@ function Velto:CreateWindow(title, size, accentColor)
             Position = UDim2.new(0.5, 0, 0.5, 0)
         }):Play()
         
+        TweenService:Create(Overlay, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            BackgroundTransparency = 1
+        }):Play()
+        
         wait(0.3)
         UI:Destroy()
     end)
@@ -371,8 +465,13 @@ function Velto:CreateWindow(title, size, accentColor)
             UI.Enabled = not UI.Enabled
             
             if UI.Enabled then
+                Overlay.Visible = true
                 MainContainer.Size = UDim2.new(0, 0, 0, 0)
                 MainContainer.Position = UDim2.new(0.5, 0, 0.5, 0)
+                
+                TweenService:Create(Overlay, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                    BackgroundTransparency = 0.7
+                }):Play()
                 
                 TweenService:Create(MainContainer, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
                     Size = size or UDim2.new(0, 600, 0, 500),
@@ -382,10 +481,17 @@ function Velto:CreateWindow(title, size, accentColor)
                     )
                 }):Play()
             else
+                TweenService:Create(Overlay, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                    BackgroundTransparency = 1
+                }):Play()
+                
                 TweenService:Create(MainContainer, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
                     Size = UDim2.new(0, 0, 0, 0),
                     Position = UDim2.new(0.5, 0, 0.5, 0)
                 }):Play()
+                
+                wait(0.3)
+                Overlay.Visible = false
             end
         end
     end)
@@ -397,6 +503,7 @@ function Velto:CreateWindow(title, size, accentColor)
     self.TabContainer = TabContainer
     self.ContentArea = ContentArea
     self.TabContent = TabContent
+    self.Overlay = Overlay
     
     return self
 end
@@ -416,6 +523,7 @@ function Velto:CreateTab(name, icon)
     Tab.Content.CanvasSize = UDim2.new(0, 0, 0, 0)
     Tab.Content.AutomaticCanvasSize = Enum.AutomaticSize.Y
     Tab.Content.Visible = false
+    Tab.Content.ZIndex = 2
     Tab.Content.Parent = self.TabContent
     
     local TabLayout = Instance.new("UIListLayout")
@@ -431,14 +539,17 @@ function Velto:CreateTab(name, icon)
     TabButton.BackgroundColor3 = Theme.Tertiary
     TabButton.BackgroundTransparency = 0.7
     TabButton.AutoButtonColor = false
+    TabButton.ZIndex = 3
     TabButton.Parent = self.TabContainer
     
     CreateRoundedFrame(TabButton, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 8)
     CreateGradient(TabButton, "Secondary")
+    CreateRippleEffect(TabButton)
     
     -- Tab icon
     if icon then
         local TabIcon = CreateIcon(TabButton, icon, UDim2.new(0, 20, 0, 20), UDim2.new(0, 15, 0.5, -10))
+        TabIcon.ZIndex = 4
     end
     
     -- Tab text
@@ -451,6 +562,7 @@ function Velto:CreateTab(name, icon)
     TabText.TextColor3 = Theme.TextDim
     TabText.TextXAlignment = Enum.TextXAlignment.Left
     TabText.BackgroundTransparency = 1
+    TabText.ZIndex = 4
     TabText.Parent = TabButton
     
     -- Tab indicator
@@ -459,10 +571,11 @@ function Velto:CreateTab(name, icon)
     TabIndicator.Position = UDim2.new(0, 0, 0.5, 0)
     TabIndicator.BackgroundColor3 = Theme.Accent
     TabIndicator.Visible = false
+    TabIndicator.ZIndex = 5
     TabIndicator.Parent = TabButton
     
     CreateRoundedFrame(TabIndicator, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 2)
-    CreateGradient(TabIndicator, "Accent")
+    CreateGradient(TabIndicator, "Premium")
     
     -- Tab button events
     TabButton.MouseEnter:Connect(function()
@@ -548,6 +661,7 @@ function Velto:AddSection(title)
     Section.Frame.Position = UDim2.new(0, 10, 0, 0)
     Section.Frame.BackgroundTransparency = 1
     Section.Frame.AutomaticSize = Enum.AutomaticSize.Y
+    Section.Frame.ZIndex = 2
     Section.Frame.Parent = self.ContentFrame
     
     local Layout = Instance.new("UIListLayout")
@@ -561,6 +675,7 @@ function Velto:AddSection(title)
         Header.Size = UDim2.new(1, 0, 0, 30)
         Header.Position = UDim2.new(0, 0, 0, 0)
         Header.BackgroundTransparency = 1
+        Header.ZIndex = 3
         Header.Parent = Section.Frame
         
         local Title = Instance.new("TextLabel")
@@ -572,6 +687,7 @@ function Velto:AddSection(title)
         Title.TextColor3 = Theme.Text
         Title.TextXAlignment = Enum.TextXAlignment.Left
         Title.BackgroundTransparency = 1
+        Title.ZIndex = 3
         Title.Parent = Header
         
         local Divider = Instance.new("Frame")
@@ -579,6 +695,7 @@ function Velto:AddSection(title)
         Divider.Position = UDim2.new(0, 0, 1, -1)
         Divider.BackgroundColor3 = Theme.Tertiary
         Divider.BackgroundTransparency = 0.8
+        Divider.ZIndex = 3
         Divider.Parent = Header
     end
     
@@ -587,6 +704,7 @@ function Velto:AddSection(title)
     Section.Content.Position = UDim2.new(0, 0, 0, title and 40 or 0)
     Section.Content.BackgroundTransparency = 1
     Section.Content.AutomaticSize = Enum.AutomaticSize.Y
+    Section.Content.ZIndex = 2
     Section.Content.Parent = Section.Frame
     
     local ContentLayout = Instance.new("UIListLayout")
@@ -606,10 +724,12 @@ function Velto:AddSection(title)
         Button.TextColor3 = Theme.Text
         Button.BackgroundColor3 = Theme.Tertiary
         Button.AutoButtonColor = false
+        Button.ZIndex = 3
         Button.Parent = Section.Content
         
         CreateRoundedFrame(Button, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 8)
         CreateGradient(Button, "Secondary")
+        CreateRippleEffect(Button)
         
         -- Hover effects
         Button.MouseEnter:Connect(function()
@@ -651,6 +771,7 @@ function Velto:AddSection(title)
         local Toggle = Instance.new("Frame")
         Toggle.Size = UDim2.new(1, 0, 0, 30)
         Toggle.BackgroundTransparency = 1
+        Toggle.ZIndex = 2
         Toggle.Parent = Section.Content
         
         local Label = Instance.new("TextLabel")
@@ -662,6 +783,7 @@ function Velto:AddSection(title)
         Label.TextColor3 = Theme.Text
         Label.TextXAlignment = Enum.TextXAlignment.Left
         Label.BackgroundTransparency = 1
+        Label.ZIndex = 3
         Label.Parent = Toggle
         
         local ToggleButton = Instance.new("TextButton")
@@ -670,6 +792,7 @@ function Velto:AddSection(title)
         ToggleButton.Text = ""
         ToggleButton.BackgroundColor3 = default and Theme.Accent or Theme.Tertiary
         ToggleButton.AutoButtonColor = false
+        ToggleButton.ZIndex = 3
         ToggleButton.Parent = Toggle
         
         CreateRoundedFrame(ToggleButton, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 12)
@@ -684,6 +807,7 @@ function Velto:AddSection(title)
         ToggleKnob.Size = UDim2.new(0, 18, 0, 18)
         ToggleKnob.Position = UDim2.new(0, default and 28 or 2, 0.5, -9)
         ToggleKnob.BackgroundColor3 = Theme.Light
+        ToggleKnob.ZIndex = 4
         ToggleKnob.Parent = ToggleButton
         
         CreateRoundedFrame(ToggleKnob, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 9)
@@ -728,6 +852,7 @@ function Velto:AddSection(title)
         local Slider = Instance.new("Frame")
         Slider.Size = UDim2.new(1, 0, 0, 60)
         Slider.BackgroundTransparency = 1
+        Slider.ZIndex = 2
         Slider.Parent = Section.Content
         
         local Label = Instance.new("TextLabel")
@@ -739,6 +864,7 @@ function Velto:AddSection(title)
         Label.TextColor3 = Theme.Text
         Label.TextXAlignment = Enum.TextXAlignment.Left
         Label.BackgroundTransparency = 1
+        Label.ZIndex = 3
         Label.Parent = Slider
         
         local Value = Instance.new("TextLabel")
@@ -750,12 +876,14 @@ function Velto:AddSection(title)
         Value.TextColor3 = Theme.TextDim
         Value.TextXAlignment = Enum.TextXAlignment.Right
         Value.BackgroundTransparency = 1
+        Value.ZIndex = 3
         Value.Parent = Slider
         
         local Track = Instance.new("Frame")
         Track.Size = UDim2.new(1, 0, 0, 5)
         Track.Position = UDim2.new(0, 0, 0, 35)
         Track.BackgroundColor3 = Theme.Tertiary
+        Track.ZIndex = 3
         Track.Parent = Slider
         
         CreateRoundedFrame(Track, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 3)
@@ -765,6 +893,7 @@ function Velto:AddSection(title)
         Fill.Size = UDim2.new(0, 0, 1, 0)
         Fill.Position = UDim2.new(0, 0, 0, 0)
         Fill.BackgroundColor3 = Theme.Accent
+        Fill.ZIndex = 4
         Fill.Parent = Track
         
         CreateRoundedFrame(Fill, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 3)
@@ -776,6 +905,7 @@ function Velto:AddSection(title)
         Knob.Text = ""
         Knob.BackgroundColor3 = Theme.Light
         Knob.AutoButtonColor = false
+        Knob.ZIndex = 5
         Knob.Parent = Track
         
         CreateRoundedFrame(Knob, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 8)
@@ -843,6 +973,7 @@ function Velto:AddSection(title)
         Dropdown.Size = UDim2.new(1, 0, 0, 40)
         Dropdown.BackgroundTransparency = 1
         Dropdown.ClipsDescendants = true
+        Dropdown.ZIndex = 2
         Dropdown.Parent = Section.Content
         
         local Label = Instance.new("TextLabel")
@@ -854,6 +985,7 @@ function Velto:AddSection(title)
         Label.TextColor3 = Theme.Text
         Label.TextXAlignment = Enum.TextXAlignment.Left
         Label.BackgroundTransparency = 1
+        Label.ZIndex = 3
         Label.Parent = Dropdown
         
         local Button = Instance.new("TextButton")
@@ -866,6 +998,7 @@ function Velto:AddSection(title)
         Button.TextXAlignment = Enum.TextXAlignment.Left
         Button.BackgroundColor3 = Theme.Tertiary
         Button.AutoButtonColor = false
+        Button.ZIndex = 3
         Button.Parent = Dropdown
         
         CreateRoundedFrame(Button, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 6)
@@ -878,6 +1011,7 @@ function Velto:AddSection(title)
         Arrow.ImageColor3 = Theme.TextDim
         Arrow.BackgroundTransparency = 1
         Arrow.Rotation = 0
+        Arrow.ZIndex = 4
         Arrow.Parent = Button
         
         local Options = Instance.new("ScrollingFrame")
@@ -890,6 +1024,7 @@ function Velto:AddSection(title)
         Options.CanvasSize = UDim2.new(0, 0, 0, 0)
         Options.AutomaticCanvasSize = Enum.AutomaticSize.Y
         Options.Visible = false
+        Options.ZIndex = 5
         Options.Parent = Dropdown
         
         CreateRoundedFrame(Options, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 6)
@@ -949,6 +1084,7 @@ function Velto:AddSection(title)
             OptionButton.BackgroundTransparency = 0.7
             OptionButton.AutoButtonColor = false
             OptionButton.LayoutOrder = i
+            OptionButton.ZIndex = 6
             OptionButton.Parent = Options
             
             OptionButton.MouseEnter:Connect(function()
@@ -1002,6 +1138,7 @@ function Velto:AddSection(title)
         Label.TextColor3 = Theme.TextDim
         Label.TextXAlignment = Enum.TextXAlignment.Left
         Label.BackgroundTransparency = 1
+        Label.ZIndex = 2
         Label.Parent = Section.Content
         
         table.insert(Section.Elements, Label)
@@ -1012,6 +1149,7 @@ function Velto:AddSection(title)
         local Textbox = Instance.new("Frame")
         Textbox.Size = UDim2.new(1, 0, 0, 60)
         Textbox.BackgroundTransparency = 1
+        Textbox.ZIndex = 2
         Textbox.Parent = Section.Content
         
         local Label = Instance.new("TextLabel")
@@ -1023,6 +1161,7 @@ function Velto:AddSection(title)
         Label.TextColor3 = Theme.Text
         Label.TextXAlignment = Enum.TextXAlignment.Left
         Label.BackgroundTransparency = 1
+        Label.ZIndex = 3
         Label.Parent = Textbox
         
         local Box = Instance.new("TextBox")
@@ -1035,6 +1174,7 @@ function Velto:AddSection(title)
         Box.TextColor3 = Theme.Text
         Box.PlaceholderColor3 = Theme.TextDim
         Box.BackgroundColor3 = Theme.Tertiary
+        Box.ZIndex = 3
         Box.Parent = Textbox
         
         CreateRoundedFrame(Box, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 6)
@@ -1060,6 +1200,123 @@ function Velto:AddSection(title)
         return Textbox
     end
     
+    Section.AddKeybind = function(_, text, defaultKey, callback)
+        local Keybind = Instance.new("Frame")
+        Keybind.Size = UDim2.new(1, 0, 0, 40)
+        Keybind.BackgroundTransparency = 1
+        Keybind.ZIndex = 2
+        Keybind.Parent = Section.Content
+        
+        local Label = Instance.new("TextLabel")
+        Label.Size = UDim2.new(0.7, 0, 1, 0)
+        Label.Position = UDim2.new(0, 0, 0, 0)
+        Label.Text = text
+        Label.Font = Enum.Font.Gotham
+        Label.TextSize = 14
+        Label.TextColor3 = Theme.Text
+        Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.BackgroundTransparency = 1
+        Label.ZIndex = 3
+        Label.Parent = Keybind
+        
+        local KeyButton = Instance.new("TextButton")
+        KeyButton.Size = UDim2.new(0, 80, 0, 25)
+        KeyButton.Position = UDim2.new(1, -80, 0.5, -12.5)
+        KeyButton.Text = defaultKey and defaultKey.Name or "None"
+        KeyButton.Font = Enum.Font.Gotham
+        KeyButton.TextSize = 12
+        KeyButton.TextColor3 = Theme.Text
+        KeyButton.BackgroundColor3 = Theme.Tertiary
+        KeyButton.AutoButtonColor = false
+        KeyButton.ZIndex = 3
+        KeyButton.Parent = Keybind
+        
+        CreateRoundedFrame(KeyButton, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 6)
+        CreateGradient(KeyButton, "Secondary")
+        
+        local listening = false
+        local currentKey = defaultKey
+        
+        KeyButton.MouseButton1Click:Connect(function()
+            listening = not listening
+            
+            if listening then
+                KeyButton.Text = "..."
+                TweenService:Create(KeyButton, TweenInfo.new(0.2), {
+                    BackgroundTransparency = 0.2
+                }):Play()
+            else
+                KeyButton.Text = currentKey and currentKey.Name or "None"
+                TweenService:Create(KeyButton, TweenInfo.new(0.2), {
+                    BackgroundTransparency = 0
+                }):Play()
+            end
+        end)
+        
+        local connection
+        connection = UserInputService.InputBegan:Connect(function(input)
+            if listening then
+                if input.UserInputType == Enum.UserInputType.Keyboard then
+                    currentKey = input.KeyCode
+                    KeyButton.Text = currentKey.Name
+                    listening = false
+                    
+                    TweenService:Create(KeyButton, TweenInfo.new(0.2), {
+                        BackgroundTransparency = 0
+                    }):Play()
+                    
+                    if callback then
+                        callback(currentKey)
+                    end
+                end
+            end
+        end)
+        
+        table.insert(Section.Elements, Keybind)
+        return Keybind
+    end
+    
+    Section.AddColorPicker = function(_, text, defaultColor, callback)
+        local ColorPicker = Instance.new("Frame")
+        ColorPicker.Size = UDim2.new(1, 0, 0, 40)
+        ColorPicker.BackgroundTransparency = 1
+        ColorPicker.ZIndex = 2
+        ColorPicker.Parent = Section.Content
+        
+        local Label = Instance.new("TextLabel")
+        Label.Size = UDim2.new(0.7, 0, 1, 0)
+        Label.Position = UDim2.new(0, 0, 0, 0)
+        Label.Text = text
+        Label.Font = Enum.Font.Gotham
+        Label.TextSize = 14
+        Label.TextColor3 = Theme.Text
+        Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.BackgroundTransparency = 1
+        Label.ZIndex = 3
+        Label.Parent = ColorPicker
+        
+        local ColorButton = Instance.new("TextButton")
+        ColorButton.Size = UDim2.new(0, 25, 0, 25)
+        ColorButton.Position = UDim2.new(1, -30, 0.5, -12.5)
+        ColorButton.Text = ""
+        ColorButton.BackgroundColor3 = defaultColor or Theme.Accent
+        ColorButton.AutoButtonColor = false
+        ColorButton.ZIndex = 3
+        ColorButton.Parent = ColorPicker
+        
+        CreateRoundedFrame(ColorButton, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 6)
+        CreateShadow(ColorButton, 0.5, 5)
+        
+        ColorButton.MouseButton1Click:Connect(function()
+            if callback then
+                callback(ColorButton.BackgroundColor3)
+            end
+        end)
+        
+        table.insert(Section.Elements, ColorPicker)
+        return ColorPicker
+    end
+    
     return Section
 end
 
@@ -1073,6 +1330,7 @@ function Velto:Notify(title, message, duration, notiType)
     Notification.Position = UDim2.new(1, -320, 1, -80)
     Notification.BackgroundColor3 = Theme.Tertiary
     Notification.ClipsDescendants = true
+    Notification.ZIndex = 10
     Notification.Parent = self.UI
     
     CreateRoundedFrame(Notification, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 8)
@@ -1088,6 +1346,7 @@ function Velto:Notify(title, message, duration, notiType)
     Title.TextColor3 = Theme.Text
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.BackgroundTransparency = 1
+    Title.ZIndex = 11
     Title.Parent = Notification
     
     local Message = Instance.new("TextLabel")
@@ -1100,12 +1359,14 @@ function Velto:Notify(title, message, duration, notiType)
     Message.TextXAlignment = Enum.TextXAlignment.Left
     Message.TextWrapped = true
     Message.BackgroundTransparency = 1
+    Message.ZIndex = 11
     Message.Parent = Notification
     
     local Icon = Instance.new("ImageLabel")
     Icon.Size = UDim2.new(0, 20, 0, 20)
     Icon.Position = UDim2.new(1, -30, 0, 10)
     Icon.BackgroundTransparency = 1
+    Icon.ZIndex = 11
     Icon.Parent = Notification
     
     -- Set icon based on notification type
@@ -1144,12 +1405,81 @@ function Velto:Notify(title, message, duration, notiType)
     return Notification
 end
 
+-- Watermark system
+function Velto:CreateWatermark(text)
+    local Watermark = Instance.new("Frame")
+    Watermark.Size = UDim2.new(0, 200, 0, 30)
+    Watermark.Position = UDim2.new(0, 10, 0, 10)
+    Watermark.BackgroundColor3 = Theme.Tertiary
+    Watermark.BackgroundTransparency = 0.7
+    Watermark.ZIndex = 1
+    Watermark.Parent = self.UI
+    
+    CreateRoundedFrame(Watermark, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 6)
+    CreateGradient(Watermark, "Secondary", 0, 0.7)
+    
+    local WatermarkText = Instance.new("TextLabel")
+    WatermarkText.Size = UDim2.new(1, -10, 1, 0)
+    WatermarkText.Position = UDim2.new(0, 5, 0, 0)
+    WatermarkText.Text = text
+    WatermarkText.Font = Enum.Font.Gotham
+    WatermarkText.TextSize = 12
+    WatermarkText.TextColor3 = Theme.TextDim
+    WatermarkText.TextXAlignment = Enum.TextXAlignment.Left
+    WatermarkText.BackgroundTransparency = 1
+    WatermarkText.ZIndex = 2
+    WatermarkText.Parent = Watermark
+    
+    -- Make watermark draggable
+    local Dragging, DragInput, DragStart, StartPosition
+    
+    Watermark.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            Dragging = true
+            DragStart = input.Position
+            StartPosition = Watermark.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    Dragging = false
+                end
+            end)
+        end
+    end)
+    
+    Watermark.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            DragInput = input
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input == DragInput and Dragging then
+            local Delta = input.Position - DragStart
+            Watermark.Position = UDim2.new(
+                StartPosition.X.Scale, 
+                StartPosition.X.Offset + Delta.X,
+                StartPosition.Y.Scale, 
+                StartPosition.Y.Offset + Delta.Y
+            )
+        end
+    end)
+    
+    return Watermark
+end
+
+-- Theme system
+function Velto:SetTheme(themeName)
+    -- This would change the entire UI theme
+    -- Implementation would go here
+end
+
 -- Main module return
 local VeltoUI = {}
 
 function VeltoUI.Init()
     -- Optional initialization function
-    print("Velto UI Initialized")
+    print("Velto UI Ultimate Premium Edition Initialized")
 end
 
 function VeltoUI.CreateWindow(title, size, accentColor)
