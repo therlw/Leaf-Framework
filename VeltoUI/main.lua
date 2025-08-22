@@ -234,12 +234,22 @@ function Velto:CreateTab(tabName, iconAssetId)
     if iconAssetId then
         local Icon = Instance.new("ImageLabel")
         Icon.BackgroundTransparency = 1
-        Icon.Size = UDim2.new(0, 18, 0, 18)
-        Icon.Position = UDim2.new(0, 8, 0.5, -9)
+        Icon.Size = UDim2.new(0, 20, 0, 20)
+        Icon.Position = UDim2.new(0, 8, 0.5, -10)
         Icon.Image = iconAssetId
-        Icon.ImageColor3 = Theme.TextDim
+        Icon.ImageColor3 = Theme.Text
         Icon.Parent = TabButton
+        
+        local IconStroke = Instance.new("UIStroke")
+        IconStroke.Thickness = 1
+        IconStroke.LineJoinMode = Enum.LineJoinMode.Round
+        IconStroke.Color = Theme.Accent
+        IconStroke.Transparency = 0.2
+        IconStroke.Enabled = false
+        IconStroke.Parent = Icon
+
         Tab.Icon = Icon
+        Tab.IconStroke = IconStroke
     end
 
     -- Highlight
@@ -265,15 +275,21 @@ function Velto:CreateTab(tabName, iconAssetId)
             t.Highlight.Visible = false
             t.Button.BackgroundColor3 = Theme.Tertiary
             if t.Icon then
-                t.Icon.ImageColor3 = Theme.TextDim
+                t.Icon.ImageColor3 = Theme.Text
+            end
+            if t.IconStroke then
+                t.IconStroke.Enabled = false
             end
         end
         
         Content.Visible = true
         Highlight.Visible = true
-        TabButton.BackgroundColor3 = Color3.fromRGB(48, 52, 62)
+        TabButton.BackgroundColor3 = Color3.fromRGB(54, 58, 70)
         if Tab.Icon then
             Tab.Icon.ImageColor3 = Theme.Accent
+        end
+        if Tab.IconStroke then
+            Tab.IconStroke.Enabled = true
         end
         self.CurrentTab = Tab
     end)
@@ -294,9 +310,12 @@ function Velto:CreateTab(tabName, iconAssetId)
 
     -- If this is the first tab, reflect active visual state
     if #self.Tabs == 1 then
-        Tab.Button.BackgroundColor3 = Color3.fromRGB(48, 52, 62)
+        Tab.Button.BackgroundColor3 = Color3.fromRGB(54, 58, 70)
         if Tab.Icon then
             Tab.Icon.ImageColor3 = Theme.Accent
+        end
+        if Tab.IconStroke then
+            Tab.IconStroke.Enabled = true
         end
     end
     return setmetatable(Tab, {__index = self})
