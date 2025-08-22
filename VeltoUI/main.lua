@@ -584,32 +584,8 @@ function Velto:CreateTab(name, icon)
     CreateRoundedFrame(TabIndicator, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 2)
     CreateGradient(TabIndicator, "Premium")
     
-    -- Tab button events
-    TabButton.MouseEnter:Connect(function()
-        if Tab ~= self.CurrentTab then
-            TweenService:Create(TabButton, TweenInfo.new(0.2), {
-                BackgroundTransparency = 0.5
-            }):Play()
-            
-            TweenService:Create(TabText, TweenInfo.new(0.2), {
-                TextColor3 = Theme.Text
-            }):Play()
-        end
-    end)
-    
-    TabButton.MouseLeave:Connect(function()
-        if Tab ~= self.CurrentTab then
-            TweenService:Create(TabButton, TweenInfo.new(0.2), {
-                BackgroundTransparency = 0.7
-            }):Play()
-            
-            TweenService:Create(TabText, TweenInfo.new(0.2), {
-                TextColor3 = Theme.TextDim
-            }):Play()
-        end
-    end)
-    
-    TabButton.MouseButton1Click:Connect(function()
+    -- Tab activation function (used by click and initial select)
+    local function ActivateTab()
         if self.CurrentTab then
             -- Hide current tab
             self.CurrentTab.Content.Visible = false
@@ -642,7 +618,34 @@ function Velto:CreateTab(name, icon)
         }):Play()
         
         self.CurrentTab = Tab
+    end
+
+    -- Tab button events
+    TabButton.MouseEnter:Connect(function()
+        if Tab ~= self.CurrentTab then
+            TweenService:Create(TabButton, TweenInfo.new(0.2), {
+                BackgroundTransparency = 0.5
+            }):Play()
+            
+            TweenService:Create(TabText, TweenInfo.new(0.2), {
+                TextColor3 = Theme.Text
+            }):Play()
+        end
     end)
+    
+    TabButton.MouseLeave:Connect(function()
+        if Tab ~= self.CurrentTab then
+            TweenService:Create(TabButton, TweenInfo.new(0.2), {
+                BackgroundTransparency = 0.7
+            }):Play()
+            
+            TweenService:Create(TabText, TweenInfo.new(0.2), {
+                TextColor3 = Theme.TextDim
+            }):Play()
+        end
+    end)
+    
+    TabButton.MouseButton1Click:Connect(ActivateTab)
     
     -- Store tab references
     Tab.Button = TabButton
@@ -652,9 +655,9 @@ function Velto:CreateTab(name, icon)
     
     table.insert(self.Tabs, Tab)
     
-    -- Select first tab
+    -- Select first tab without firing RBXScriptSignal
     if #self.Tabs == 1 then
-        TabButton.MouseButton1Click:Fire()
+        ActivateTab()
     end
     
     return setmetatable(Tab, {__index = self})
