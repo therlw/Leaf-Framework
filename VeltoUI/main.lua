@@ -6,6 +6,7 @@ Velto.__index = Velto
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
 
 -- THEME CONFIGURATION
 local Theme = {
@@ -21,6 +22,22 @@ local Theme = {
     Warning = Color3.fromRGB(255, 180, 90),
     Error = Color3.fromRGB(235, 90, 90)
 }
+
+-- EXPLOIT FILE I/O (feature-detected)
+local hasFS = (typeof(isfile) == "function") and (typeof(readfile) == "function") and (typeof(writefile) == "function")
+
+local function TryRead(path)
+    if not hasFS then return nil end
+    local ok, data = pcall(readfile, path)
+    if ok and data then return data end
+    return nil
+end
+
+local function TryWrite(path, contents)
+    if not hasFS then return false end
+    pcall(writefile, path, contents)
+    return true
+end
 
 -- UTILITY FUNCTIONS
 local function CreateShadow(parent)
@@ -59,6 +76,17 @@ function Velto:CreateWindow(title, size)
     self.Tabs = {}
     self.CurrentTab = nil
     self.Elements = {}
+    self.ConfigPath = "Velto_"..(title:gsub("%s+",""))..".json"
+    self.State = { Position = {0.5,-275,0.5,-200}, Minimized = false, ToggleKey = "RightShift", Size = {0,550,0,400} }
+    do
+        local raw = TryRead(self.ConfigPath)
+        if raw then
+            local ok, dec = pcall(HttpService.JSONDecode, HttpService, raw)
+            if ok and type(dec) == "table" then
+                for k,v in pairs(dec) do self.State[k] = v end
+            end
+        end
+    end
     
     -- Create UI container
     local UI = Instance.new("ScreenGui")
@@ -69,8 +97,9 @@ function Velto:CreateWindow(title, size)
 
     -- Main frame
     local Frame = Instance.new("Frame")
-    Frame.Size = size or UDim2.new(0, 550, 0, 400)
-    Frame.Position = UDim2.new(0.5, -275, 0.5, -200)
+    local defaultSize = size or UDim2.new(self.State.Size[1], self.State.Size[2], self.State.Size[3], self.State.Size[4])
+    Frame.Size = defaultSize
+    Frame.Position = UDim2.new(self.State.Position[1], self.State.Position[2], self.State.Position[3], self.State.Position[4])
     Frame.BackgroundColor3 = Theme.Primary
     Frame.Active = true
     Frame.Draggable = false -- header-only dragging implemented below
@@ -109,6 +138,8 @@ function Velto:CreateWindow(title, size)
         UserInputService.InputEnded:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = false
+                self.State.Position = {Frame.Position.X.Scale, Frame.Position.X.Offset, Frame.Position.Y.Scale, Frame.Position.Y.Offset}
+                TryWrite(self.ConfigPath, HttpService:JSONEncode(self.State))
             end
         end)
     end
@@ -200,12 +231,86 @@ function Velto:CreateWindow(title, size)
     self.ContentContainer = ContentContainer
 
     -- wire minimize after containers exist
-    local minimized = false
+    local minimized = self.State.Minimized or false
     MinButton.MouseButton1Click:Connect(function()
         minimized = not minimized
         TabContainer.Visible = not minimized
         ContentContainer.Visible = not minimized
+        self.State.Minimized = minimized
+        TryWrite(self.ConfigPath, HttpService:JSONEncode(self.State))
     end)
+    -- apply persisted minimized state
+    TabContainer.Visible = not minimized
+    ContentContainer.Visible = not minimized
+
+    -- Global toggle key (hide/show entire UI)
+    do
+        local keyName = self.State.ToggleKey or "RightShift"
+        local function toKeyCode(name)
+            for _, kc in pairs(Enum.KeyCode:GetEnumItems()) do if kc.Name == name then return kc end end
+            return Enum.KeyCode.RightShift
+        end
+        local toggleKey = toKeyCode(keyName)
+        self.ToggleKey = toggleKey
+        UserInputService.InputBegan:Connect(function(input, gpe)
+            if gpe then return end
+            if input.KeyCode == self.ToggleKey then
+                UI.Enabled = not UI.Enabled
+            end
+        end)
+    end
+
+    -- Resize handle (bottom-right)
+    local ResizeGrip = Instance.new("Frame")
+    ResizeGrip.Size = UDim2.new(0, 16, 0, 16)
+    ResizeGrip.Position = UDim2.new(1, -16, 1, -16)
+    ResizeGrip.BackgroundColor3 = Color3.fromRGB(70, 76, 88)
+    ResizeGrip.Active = true
+    ResizeGrip.Name = "ResizeGrip"
+    ResizeGrip.Parent = Frame
+    CreateCorner(ResizeGrip, 3)
+    CreateStroke(ResizeGrip, 1, Color3.fromRGB(90, 98, 112))
+    local resizing = false
+    local startSize, startMouse
+    ResizeGrip.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            resizing = true
+            startSize = Frame.AbsoluteSize
+            startMouse = input.Position
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if resizing and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - startMouse
+            local newW = math.clamp(startSize.X + delta.X, 480, 900)
+            local newH = math.clamp(startSize.Y + delta.Y, 340, 700)
+            Frame.Size = UDim2.new(0, newW, 0, newH)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            if resizing then
+                resizing = false
+                self.State.Size = {Frame.Size.X.Scale, Frame.Size.X.Offset, Frame.Size.Y.Scale, Frame.Size.Y.Offset}
+                TryWrite(self.ConfigPath, HttpService:JSONEncode(self.State))
+            end
+        end
+    end)
+
+    -- Notifications container
+    local NotiHolder = Instance.new("Frame")
+    NotiHolder.Name = "Notifications"
+    NotiHolder.AnchorPoint = Vector2.new(1, 1)
+    NotiHolder.Size = UDim2.new(0, 280, 1, -20)
+    NotiHolder.Position = UDim2.new(1, -10, 1, -10)
+    NotiHolder.BackgroundTransparency = 1
+    NotiHolder.Parent = UI
+    local NotiList = Instance.new("UIListLayout")
+    NotiList.FillDirection = Enum.FillDirection.Vertical
+    NotiList.HorizontalAlignment = Enum.HorizontalAlignment.Right
+    NotiList.VerticalAlignment = Enum.VerticalAlignment.Bottom
+    NotiList.Padding = UDim.new(0, 6)
+    NotiList.Parent = NotiHolder
 
     return self
 end
@@ -251,6 +356,21 @@ function Velto:CreateTab(tabName, iconAssetId)
         Tab.Icon = Icon
         Tab.IconStroke = IconStroke
     end
+
+    -- Badge (hidden by default)
+    local Badge = Instance.new("TextLabel")
+    Badge.BackgroundColor3 = Theme.Accent
+    Badge.TextColor3 = Color3.fromRGB(0,0,0)
+    Badge.Font = Enum.Font.GothamBold
+    Badge.TextSize = 12
+    Badge.Text = ""
+    Badge.AutoLocalize = false
+    Badge.Visible = false
+    Badge.AnchorPoint = Vector2.new(1, 0.5)
+    Badge.Size = UDim2.new(0, 28, 0, 18)
+    Badge.Position = UDim2.new(1, -8, 0.5, 0)
+    Badge.Parent = TabButton
+    CreateCorner(Badge, 9)
 
     -- Highlight
     local Highlight = Instance.new("Frame")
@@ -298,6 +418,7 @@ function Velto:CreateTab(tabName, iconAssetId)
     Tab.Highlight = Highlight
     Tab.Content = Content
     Tab.Elements = {}
+    Tab.Badge = Badge
 
     -- Allow building controls onto this tab directly using Velto methods
     Tab.AddButton = self.AddButton
@@ -333,36 +454,64 @@ function Velto:AddSection(title)
     CreateCorner(Section, 8)
     CreateStroke(Section, 1, Color3.fromRGB(50, 56, 66))
 
+    -- Header (collapsible)
+    local Header = Instance.new("TextButton")
+    Header.BackgroundTransparency = 1
+    Header.Text = (title and #title > 0) and ("  "..title) or "  Section"
+    Header.TextColor3 = Theme.Text
+    Header.Font = Enum.Font.GothamBold
+    Header.TextSize = 15
+    Header.Size = UDim2.new(1, -8, 0, 24)
+    Header.Position = UDim2.new(0, 4, 0, 6)
+    Header.TextXAlignment = Enum.TextXAlignment.Left
+    Header.Parent = Section
+
+    local Chevron = Instance.new("TextLabel")
+    Chevron.BackgroundTransparency = 1
+    Chevron.Size = UDim2.new(0, 18, 0, 18)
+    Chevron.Position = UDim2.new(0, -2, 0.5, -9)
+    Chevron.Text = "▼"
+    Chevron.TextColor3 = Theme.Text
+    Chevron.Font = Enum.Font.GothamBold
+    Chevron.TextSize = 14
+    Chevron.Parent = Header
+
+    local Inner = Instance.new("Frame")
+    Inner.Name = "Inner"
+    Inner.Size = UDim2.new(1, -16, 0, 0)
+    Inner.Position = UDim2.new(0, 8, 0, 34)
+    Inner.AutomaticSize = Enum.AutomaticSize.Y
+    Inner.BackgroundTransparency = 1
+    Inner.Parent = Section
+
     local pad = Instance.new("UIPadding")
-    pad.PaddingLeft = UDim.new(0, 10)
-    pad.PaddingRight = UDim.new(0, 10)
-    pad.PaddingTop = UDim.new(0, 10)
+    pad.PaddingLeft = UDim.new(0, 2)
+    pad.PaddingRight = UDim.new(0, 2)
+    pad.PaddingTop = UDim.new(0, 2)
     pad.PaddingBottom = UDim.new(0, 10)
-    pad.Parent = Section
+    pad.Parent = Inner
 
     local list = Instance.new("UIListLayout")
     list.Padding = UDim.new(0, 8)
     list.SortOrder = Enum.SortOrder.LayoutOrder
-    list.Parent = Section
+    list.Parent = Inner
 
-    if title and #title > 0 then
-        local Header = Instance.new("TextLabel")
-        Header.BackgroundTransparency = 1
-        Header.Text = title
-        Header.TextColor3 = Theme.Text
-        Header.Font = Enum.Font.GothamBold
-        Header.TextSize = 15
-        Header.Size = UDim2.new(1, 0, 0, 20)
-        Header.Parent = Section
-    end
+    local collapsed = false
+    Header.MouseButton1Click:Connect(function()
+        collapsed = not collapsed
+        Inner.Visible = not collapsed
+        TweenService:Create(Chevron, TweenInfo.new(0.2), { Rotation = collapsed and -90 or 0 }):Play()
+    end)
 
-    local sec = { Content = Section, Elements = {} }
+    local sec = { Content = Inner, Elements = {}, __SectionFrame = Section }
     sec.AddButton = self.AddButton
     sec.AddToggle = self.AddToggle
     sec.AddLabel = self.AddLabel
     sec.AddSlider = self.AddSlider
     sec.AddDropdown = self.AddDropdown
     sec.AddTextbox = self.AddTextbox
+    sec.AddKeybind = self.AddKeybind
+    sec.AddColorPicker = self.AddColorPicker
     return setmetatable(sec, {__index = self})
 end
 
