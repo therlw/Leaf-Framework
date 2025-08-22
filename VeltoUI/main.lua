@@ -314,6 +314,12 @@ function Velto:CreateWindow(title, size, accentColor)
     TabListLayout.SortOrder = Enum.SortOrder.LayoutOrder
     TabListLayout.Parent = TabContainer
     
+    local TabPadding = Instance.new("UIPadding")
+    TabPadding.PaddingTop = UDim.new(0, 5)
+    TabPadding.PaddingLeft = UDim.new(0, 10)
+    TabPadding.PaddingRight = UDim.new(0, 10)
+    TabPadding.Parent = TabContainer
+    
     -- Content area
     local ContentArea = Instance.new("Frame")
     ContentArea.Size = UDim2.new(1, -190, 1, -20)
@@ -533,14 +539,14 @@ function Velto:CreateTab(name, icon)
     
     -- Tab button
     local TabButton = Instance.new("TextButton")
-    TabButton.Size = UDim2.new(1, -20, 0, 40)
-    TabButton.Position = UDim2.new(0, 10, 0, #self.Tabs * 45)
+    TabButton.Size = UDim2.new(1, 0, 0, 40)
     TabButton.Text = ""
     TabButton.BackgroundColor3 = Theme.Tertiary
     TabButton.BackgroundTransparency = 0.7
     TabButton.AutoButtonColor = false
     TabButton.ZIndex = 3
     TabButton.Parent = self.TabContainer
+    TabButton.LayoutOrder = #self.Tabs
     
     CreateRoundedFrame(TabButton, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 8)
     CreateGradient(TabButton, "Secondary")
@@ -561,6 +567,7 @@ function Velto:CreateTab(name, icon)
     TabText.TextSize = 14
     TabText.TextColor3 = Theme.TextDim
     TabText.TextXAlignment = Enum.TextXAlignment.Left
+    TabText.TextTruncate = Enum.TextTruncate.AtEnd
     TabText.BackgroundTransparency = 1
     TabText.ZIndex = 4
     TabText.Parent = TabButton
@@ -744,16 +751,15 @@ function Velto:AddSection(title)
             }):Play()
         end)
         
-        -- Click effect
+        -- Click feedback without layout shift
         Button.MouseButton1Down:Connect(function()
-            TweenService:Create(Button, TweenInfo.new(0.1), {
-                Size = UDim2.new(0.98, 0, 0, 38)
+            TweenService:Create(Button, TweenInfo.new(0.08), {
+                BackgroundTransparency = 0.6
             }):Play()
         end)
-        
         Button.MouseButton1Up:Connect(function()
-            TweenService:Create(Button, TweenInfo.new(0.1), {
-                Size = UDim2.new(1, 0, 0, 40)
+            TweenService:Create(Button, TweenInfo.new(0.08), {
+                BackgroundTransparency = 0.5
             }):Play()
         end)
         
@@ -782,6 +788,7 @@ function Velto:AddSection(title)
         Label.TextSize = 14
         Label.TextColor3 = Theme.Text
         Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.TextTruncate = Enum.TextTruncate.AtEnd
         Label.BackgroundTransparency = 1
         Label.ZIndex = 3
         Label.Parent = Toggle
@@ -863,6 +870,7 @@ function Velto:AddSection(title)
         Label.TextSize = 14
         Label.TextColor3 = Theme.Text
         Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.TextTruncate = Enum.TextTruncate.AtEnd
         Label.BackgroundTransparency = 1
         Label.ZIndex = 3
         Label.Parent = Slider
@@ -971,8 +979,9 @@ function Velto:AddSection(title)
     Section.AddDropdown = function(_, text, options, default, callback)
         local Dropdown = Instance.new("Frame")
         Dropdown.Size = UDim2.new(1, 0, 0, 40)
+        Dropdown.AutomaticSize = Enum.AutomaticSize.None
         Dropdown.BackgroundTransparency = 1
-        Dropdown.ClipsDescendants = true
+        Dropdown.ClipsDescendants = false
         Dropdown.ZIndex = 2
         Dropdown.Parent = Section.Content
         
@@ -984,6 +993,7 @@ function Velto:AddSection(title)
         Label.TextSize = 14
         Label.TextColor3 = Theme.Text
         Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.TextTruncate = Enum.TextTruncate.AtEnd
         Label.BackgroundTransparency = 1
         Label.ZIndex = 3
         Label.Parent = Dropdown
@@ -996,6 +1006,7 @@ function Velto:AddSection(title)
         Button.TextSize = 14
         Button.TextColor3 = Theme.Text
         Button.TextXAlignment = Enum.TextXAlignment.Left
+        Button.TextTruncate = Enum.TextTruncate.AtEnd
         Button.BackgroundColor3 = Theme.Tertiary
         Button.AutoButtonColor = false
         Button.ZIndex = 3
@@ -1003,6 +1014,11 @@ function Velto:AddSection(title)
         
         CreateRoundedFrame(Button, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 6)
         CreateGradient(Button, "Secondary")
+        
+        local ButtonPadding = Instance.new("UIPadding")
+        ButtonPadding.PaddingLeft = UDim.new(0, 8)
+        ButtonPadding.PaddingRight = UDim.new(0, 28)
+        ButtonPadding.Parent = Button
         
         local Arrow = Instance.new("ImageLabel")
         Arrow.Size = UDim2.new(0, 16, 0, 16)
@@ -1030,6 +1046,13 @@ function Velto:AddSection(title)
         CreateRoundedFrame(Options, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 6)
         CreateGradient(Options, "Secondary")
         
+        local OptionsPadding = Instance.new("UIPadding")
+        OptionsPadding.PaddingTop = UDim.new(0, 4)
+        OptionsPadding.PaddingBottom = UDim.new(0, 4)
+        OptionsPadding.PaddingLeft = UDim.new(0, 4)
+        OptionsPadding.PaddingRight = UDim.new(0, 4)
+        OptionsPadding.Parent = Options
+        
         local OptionsLayout = Instance.new("UIListLayout")
         OptionsLayout.Padding = UDim.new(0, 1)
         OptionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -1046,6 +1069,12 @@ function Velto:AddSection(title)
                     Size = UDim2.new(1, 0, 0, math.min(#options * 31, 155))
                 }):Play()
                 
+                -- Expand parent frame to avoid clipping/overlap
+                local targetHeight = 40 + math.min(#options * 31, 155) + 5
+                TweenService:Create(Dropdown, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                    Size = UDim2.new(1, 0, 0, targetHeight)
+                }):Play()
+                
                 TweenService:Create(Arrow, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                     Rotation = 180
                 }):Play()
@@ -1056,6 +1085,10 @@ function Velto:AddSection(title)
             else
                 TweenService:Create(Options, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                     Size = UDim2.new(1, 0, 0, 0)
+                }):Play()
+                
+                TweenService:Create(Dropdown, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                    Size = UDim2.new(1, 0, 0, 40)
                 }):Play()
                 
                 TweenService:Create(Arrow, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
@@ -1086,6 +1119,13 @@ function Velto:AddSection(title)
             OptionButton.LayoutOrder = i
             OptionButton.ZIndex = 6
             OptionButton.Parent = Options
+            OptionButton.TextXAlignment = Enum.TextXAlignment.Left
+            OptionButton.TextTruncate = Enum.TextTruncate.AtEnd
+            
+            local OBPad = Instance.new("UIPadding")
+            OBPad.PaddingLeft = UDim.new(0, 8)
+            OBPad.PaddingRight = UDim.new(0, 8)
+            OBPad.Parent = OptionButton
             
             OptionButton.MouseEnter:Connect(function()
                 TweenService:Create(OptionButton, TweenInfo.new(0.2), {
@@ -1137,6 +1177,7 @@ function Velto:AddSection(title)
         Label.TextSize = 14
         Label.TextColor3 = Theme.TextDim
         Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.TextTruncate = Enum.TextTruncate.AtEnd
         Label.BackgroundTransparency = 1
         Label.ZIndex = 2
         Label.Parent = Section.Content
@@ -1160,6 +1201,7 @@ function Velto:AddSection(title)
         Label.TextSize = 14
         Label.TextColor3 = Theme.Text
         Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.TextTruncate = Enum.TextTruncate.AtEnd
         Label.BackgroundTransparency = 1
         Label.ZIndex = 3
         Label.Parent = Textbox
@@ -1179,6 +1221,11 @@ function Velto:AddSection(title)
         
         CreateRoundedFrame(Box, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 6)
         CreateGradient(Box, "Secondary")
+        
+        local BoxPadding = Instance.new("UIPadding")
+        BoxPadding.PaddingLeft = UDim.new(0, 8)
+        BoxPadding.PaddingRight = UDim.new(0, 8)
+        BoxPadding.Parent = Box
         
         Box.Focused:Connect(function()
             TweenService:Create(Box, TweenInfo.new(0.2), {
@@ -1215,6 +1262,7 @@ function Velto:AddSection(title)
         Label.TextSize = 14
         Label.TextColor3 = Theme.Text
         Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.TextTruncate = Enum.TextTruncate.AtEnd
         Label.BackgroundTransparency = 1
         Label.ZIndex = 3
         Label.Parent = Keybind
@@ -1233,6 +1281,11 @@ function Velto:AddSection(title)
         
         CreateRoundedFrame(KeyButton, UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), 6)
         CreateGradient(KeyButton, "Secondary")
+        
+        local KeyPad = Instance.new("UIPadding")
+        KeyPad.PaddingLeft = UDim.new(0, 6)
+        KeyPad.PaddingRight = UDim.new(0, 6)
+        KeyPad.Parent = KeyButton
         
         local listening = false
         local currentKey = defaultKey
