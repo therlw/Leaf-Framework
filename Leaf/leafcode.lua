@@ -3033,7 +3033,23 @@ function Leaf:AddSection(title, _)
         
         local function updateValue(newValue, animate)
             value = math.clamp(newValue, min, max)
-            Value.Text = tostring(math.floor(value))
+            -- Format value with proper decimals
+            if (max - min) <= 10 then
+                -- For small ranges (like 0.1-2.0), show 2 decimal places
+                Value.Text = string.format("%.2f", value)
+            elseif value >= 1000000 then
+                -- For large numbers, use abbreviated format
+                if value >= 1000000000 then
+                    Value.Text = string.format("%.1fB", value / 1000000000)
+                elseif value >= 1000000 then
+                    Value.Text = string.format("%.1fM", value / 1000000)
+                else
+                    Value.Text = string.format("%.1fK", value / 1000)
+                end
+            else
+                -- For medium ranges, show whole numbers
+                Value.Text = tostring(math.floor(value))
+            end
             -- floating value bubble removed
             
             local percentage = (value - min) / (max - min)
