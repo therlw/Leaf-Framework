@@ -520,11 +520,17 @@ function Leaf:CreateWindow(title, size, accentColor, tabs)
     self.Elements = {}
     self.Notifications = {}
     self.ConfigPath = "Leaf_"..(title:gsub("%s+",""))..".json"
+    
+    -- Handle size parameter properly
+    local windowSize = size or UDim2.new(0, 620, 0, 420)
+    local sizeX = windowSize.X.Offset > 0 and windowSize.X.Offset or 620
+    local sizeY = windowSize.Y.Offset > 0 and windowSize.Y.Offset or 420
+    
     self.State = { 
-        Position = {0.5, -300, 0.5, -200}, 
+        Position = {0.5, -sizeX/2, 0.5, -sizeY/2}, 
         Minimized = false, 
         ToggleKey = "RightShift", 
-        Size = {0, 600, 0, 500},
+        Size = {0, sizeX, 0, sizeY},
         Theme = "Dark"
     }
     
@@ -2225,17 +2231,38 @@ function Leaf:CreateTab(name, icon)
     return setmetatable(Tab, {__index = self})
 end
 
--- Batch create tabs helper
+-- Batch create tabs helper - supports user's preferred format
 function Leaf:CreateTabs(tabDefs)
     if not self.Tabs then self.Tabs = {} end
     if not tabDefs or type(tabDefs) ~= "table" then return end
+    
     for _, def in ipairs(tabDefs) do
-        local name = (type(def) == "table" and (def.name or def[1])) or tostring(def)
-        local icon = (type(def) == "table" and (def.icon or def[2])) or nil
+        local name, icon
+        
+        if type(def) == "table" then
+            -- Support both formats: {name="General", icon=123} and {"General", 123}
+            name = def.name or def[1]
+            icon = def.icon or def[2]
+        else
+            -- Simple string format
+            name = tostring(def)
+            icon = nil
+        end
+        
         if name then
-            self:CreateTab(name, icon)
+            -- Convert icon to proper rbxassetid format if it's a number
+            local iconId = nil
+            if icon and type(icon) == "number" then
+                iconId = "rbxassetid://" .. tostring(icon)
+            elseif icon and type(icon) == "string" then
+                iconId = icon:match("rbxassetid://") and icon or ("rbxassetid://" .. icon)
+            end
+            
+            self:CreateTab(name, iconId)
         end
     end
+    
+    return self
 end
 
 -- Section Creation (with optional config)
