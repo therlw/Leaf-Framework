@@ -194,7 +194,7 @@ function Library:Window(options)
     local LogoContainer = Create("Frame", {
         Parent = Header,
         BackgroundTransparency = 1,
-        Size = UDim2.new(0, 200, 1, 0),
+        Size = UDim2.new(0, 160, 1, 0), -- Reduced to 160
         Position = UDim2.new(0, 20, 0, 0),
         ZIndex = 5
     })
@@ -346,11 +346,36 @@ function Library:Window(options)
     local Sidebar = Create("Frame", {
         Parent = Main,
         BackgroundColor3 = Color3.fromRGB(17, 17, 20),
-        Size = UDim2.new(0, 200, 1, -54),
+        Size = UDim2.new(0, 160, 1, -54), -- Reduced width to 160
         Position = UDim2.new(0, 0, 0, 54),
         BorderSizePixel = 0,
         ZIndex = 5
     })
+    
+    -- Fix: Round Bottom-Left corner of sidebar
+    Create("UICorner", {Parent = Sidebar, CornerRadius = UDim.new(0, 16)})
+    
+    -- Fix: Filler to square off Top corners (connecting to header)
+    Create("Frame", {
+        Parent = Sidebar,
+        BackgroundColor3 = Color3.fromRGB(17, 17, 20),
+        BorderSizePixel = 0,
+        Size = UDim2.new(1, 0, 0, 20),
+        Position = UDim2.new(0, 0, 0, 0),
+        ZIndex = 5
+    })
+    
+    -- Fix: Filler to square off Right side (internal edge touching content)
+    Create("Frame", {
+        Parent = Sidebar,
+        BackgroundColor3 = Color3.fromRGB(17, 17, 20),
+        BorderSizePixel = 0,
+        Size = UDim2.new(0, 20, 1, 0),
+        Position = UDim2.new(1, -20, 0, 0),
+        ZIndex = 5
+    })
+
+    -- Sidebar Divider Line
     Create("Frame", {
         Parent = Sidebar,
         BackgroundColor3 = Config.Colors.Border,
@@ -364,8 +389,8 @@ function Library:Window(options)
     local Content = Create("Frame", {
         Parent = Main,
         BackgroundColor3 = Config.Colors.Background,
-        Size = UDim2.new(1, -200, 1, -54),
-        Position = UDim2.new(0, 200, 0, 54),
+        Size = UDim2.new(1, -160, 1, -54), -- Adjusted for 160 width
+        Position = UDim2.new(0, 160, 0, 54),
         BorderSizePixel = 0,
         ClipsDescendants = true,
         ZIndex = 1
