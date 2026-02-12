@@ -646,16 +646,18 @@ function Library:Window(options)
             Rotation = 0
         })
 
-        -- Active Indicator (Fixed: Clean 4px solid vertical line)
+        -- Active Indicator (Aesthetic: Rounded & Centered Pill)
         local ActiveIndicator = Create("Frame", {
             Parent = Btn,
             BackgroundColor3 = Config.Colors.Primary,
-            Size = UDim2.new(0, 4, 1, 0), -- 4px wide, full height
-            Position = UDim2.new(0, 0, 0, 0),
+            Size = UDim2.new(0, 4, 0.6, 0), -- Reduced height (60%)
+            Position = UDim2.new(0, 0, 0.5, 0), -- Centered vertically
+            AnchorPoint = Vector2.new(0, 0.5),
             BackgroundTransparency = 1,
             BorderSizePixel = 0,
             ZIndex = 9
         })
+        Create("UICorner", {Parent = ActiveIndicator, CornerRadius = UDim.new(1, 0)})
 
         local TabIcon = Create("ImageLabel", {
             Parent = Btn,
