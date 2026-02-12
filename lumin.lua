@@ -1,5 +1,5 @@
 --[[
-    RLWSCRIPTS PREMIUM LIBRARY v1.4 (Debug & Fixes)
+    RLWSCRIPTS PREMIUM LIBRARY v1.5 (Final Fixes)
     Design: React/Tailwind Port (1:1 Replica)
     Author: RLW System
     
@@ -701,7 +701,7 @@ function Library:Window(options)
                     local targetStroke = Toggled and Config.Colors.Primary or Config.Colors.Border
                     
                     Tween(Switch, {BackgroundColor3 = targetColor}, 0.2)
-                    Tween(Dot, {Position = targetPos}, 0.3, Enum.EasingStyle.Spring)
+                    Tween(Dot, {Position = targetPos}, 0.3, Enum.EasingStyle.Back) -- Fixed Spring to Back
                     Tween(Stroke, {Color = targetStroke, Transparency = Toggled and 0.6 or 0}, 0.2)
                 end
 
