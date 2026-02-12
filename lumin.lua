@@ -1,10 +1,10 @@
 --[[
-    RLWSCRIPTS PREMIUM LIBRARY v2.0 (Ultra UI)
+    RLWSCRIPTS PREMIUM LIBRARY v2.1 (Fixed Padding)
     Design: React/Tailwind Port (1:1 Replica)
     Author: RLW System
 ]]
 
-print("[RLW LIB] Initializing Library v2.0...")
+print("[RLW LIB] Initializing Library v2.1...")
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -435,7 +435,15 @@ function Library:Window(options)
         AnchorPoint = Vector2.new(0, 1),
         ZIndex = 6
     })
-    Create("UIPadding", {Parent = UserContainer, PaddingAll = UDim.new(0, 16)})
+    
+    -- FIXED PADDING: Removed PaddingAll, added individual paddings
+    Create("UIPadding", {
+        Parent = UserContainer, 
+        PaddingTop = UDim.new(0, 16),
+        PaddingBottom = UDim.new(0, 16),
+        PaddingLeft = UDim.new(0, 16),
+        PaddingRight = UDim.new(0, 16)
+    })
 
     local UserPanel = Create("Frame", {
         Parent = UserContainer,
