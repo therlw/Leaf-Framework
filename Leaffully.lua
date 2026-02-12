@@ -1010,29 +1010,49 @@ function Leaf:CreateWindow(options, size, accentColor, tabs)
     Avatar.Size = UDim2.fromOffset(44,44)
     Avatar.Position = UDim2.new(0, 10, 0, 12)
     Avatar.BackgroundTransparency = 1
-    Avatar.Image = "rbxassetid://114947819863912" -- placeholder circle
     Avatar.ZIndex = 5
     Avatar.Parent = Profile
+    
+    -- Get actual player avatar
+    local playerId = 0
+    pcall(function()
+        if game.Players and game.Players.LocalPlayer and game.Players.LocalPlayer.UserId then
+            playerId = game.Players.LocalPlayer.UserId
+        end
+    end)
+    -- Try to get avatar image, fallback to placeholder
+    local avatarUrl = "rbxassetid://114947819863912"  -- default placeholder
+    if playerId > 0 then
+        avatarUrl = "rbxassetid://" .. tostring(playerId)
+    end
+    Avatar.Image = avatarUrl
+    
     local aCorner = Instance.new("UICorner"); aCorner.CornerRadius = UDim.new(1,0); aCorner.Parent = Avatar
-    -- local aStroke = Instance.new("UIStroke"); aStroke.Color = Theme.Accent; aStroke.Thickness = 1; aStroke.Transparency = 0.4; aStroke.Parent = Avatar
-    -- breathing handled by global animator (single RenderStepped)
+    
     local Username = Instance.new("TextLabel")
     Username.Size = UDim2.new(1, -68, 0, 22)
     Username.Position = UDim2.new(0, 64, 0, 10)
     Username.BackgroundTransparency = 1
     Username.Font = Enum.Font.GothamBold
-    -- Get actual player name, fallback to title + User if not available
+    
+    -- Get actual player name with truncation for long names
     local playerName = "Player"
     pcall(function()
         if game.Players and game.Players.LocalPlayer then
             playerName = game.Players.LocalPlayer.Name or game.Players.LocalPlayer.DisplayName or "Player"
         end
     end)
+    -- Truncate long names
+    if #playerName > 15 then
+        playerName = playerName:sub(1, 12) .. "..."
+    end
+    
     Username.Text = NavConfig.Profile.UsernameText or playerName
     Username.TextSize = 16
     Username.TextColor3 = NavConfig.Profile.UsernameTextColor
-    Username.ZIndex = 5
     Username.TextXAlignment = Enum.TextXAlignment.Left
+    Username.TextTruncate = Enum.TextTruncate.AtEnd
+    Username.ZIndex = 5
     Username.Parent = Profile
     local SubInfo = Instance.new("TextLabel")
     SubInfo.Size = UDim2.new(1, -68, 0, 16)
@@ -1854,13 +1874,17 @@ end)
     end
 
     -- Optional: auto-create tabs passed to CreateWindow
-    -- Accept formats: { {"Main", 6031265977}, {name="Settings", icon=6031280882} }
+    -- Accept formats: { {"Main", 6031265977}, {name="Settings", icon=6031280882, activeIcon=..., inactiveIcon=...} }
     if tabs and type(tabs) == "table" then
         for _, def in ipairs(tabs) do
             local name = (type(def) == "table" and (def.name or def[1])) or tostring(def)
             local icon = (type(def) == "table" and (def.icon or def[2])) or nil
+            local opts = (type(def) == "table" and def) or {}
             if name then
-                self:CreateTab(name, icon)
+                self:CreateTab(name, icon, {
+                    activeIcon = opts.activeIcon,
+                    inactiveIcon = opts.inactiveIcon
+                })
             end
         end
     end
@@ -1869,7 +1893,11 @@ end)
 end
 
 -- Tab Creation
-function Leaf:CreateTab(name, icon)
+function Leaf:CreateTab(name, icon, opts)
+    opts = opts or {}
+    local activeIcon = opts.activeIcon or icon
+    local inactiveIcon = opts.inactiveIcon or icon
+    
     local Tab = {}
     Tab.Name = name
     Tab.Buttons = {}
@@ -1964,8 +1992,11 @@ function Leaf:CreateTab(name, icon)
     -- Tab icon
     local TabIcon = nil
     if icon then
-        TabIcon = CreateIcon(TabButton, icon, UDim2.new(0, 25, 0, 25), UDim2.new(0, 15, 0.5, -10))
+        TabIcon = CreateIcon(TabButton, inactiveIcon or icon, UDim2.new(0, 25, 0, 25), UDim2.new(0, 15, 0.5, -10))
         TabIcon.ZIndex = 4
+        -- Store active/inactive icons for state changes
+        Tab._activeIcon = activeIcon
+        Tab._inactiveIcon = inactiveIcon or icon
         -- initialize as inactive state color
         local icfg = NavConfig.TabButton
         if icfg and TabIcon and TabIcon:IsA("ImageLabel") then
@@ -2119,12 +2150,11 @@ function Leaf:CreateTab(name, icon)
             end
 
             -- Update icon to active state
-            if TabIcon then
+            if TabIcon and Tab._activeIcon then
                 local icfg = NavConfig.TabButton
                 if icfg then
-                    if icfg.IconActiveId and TabIcon:IsA("ImageLabel") then
-                        TabIcon.Image = "rbxassetid://"..tostring(icfg.IconActiveId)
-                    end
+                    -- Use custom active icon if provided
+                    TabIcon.Image = "rbxassetid://"..tostring(Tab._activeIcon)
                     if TabIcon:IsA("ImageLabel") then
                         TabIcon.ImageColor3 = icfg.IconActiveColor or Theme.Text
                     end
@@ -2184,12 +2214,11 @@ function Leaf:CreateTab(name, icon)
                 prevTab.Indicator.Visible = false
             end
             -- Revert previous tab icon to inactive state
-            if prevTab.Icon then
+            if prevTab.Icon and prevTab._inactiveIcon then
                 local icfg = NavConfig.TabButton
                 if icfg then
-                    if icfg.IconInactiveId and prevTab.Icon:IsA("ImageLabel") then
-                        prevTab.Icon.Image = "rbxassetid://"..tostring(icfg.IconInactiveId)
-                    end
+                    -- Use custom inactive icon if provided
+                    prevTab.Icon.Image = "rbxassetid://"..tostring(prevTab._inactiveIcon)
                     if prevTab.Icon:IsA("ImageLabel") then
                         prevTab.Icon.ImageColor3 = icfg.IconInactiveColor or Theme.TextDim
                     end
@@ -2267,8 +2296,12 @@ function Leaf:CreateTabs(tabDefs)
     for _, def in ipairs(tabDefs) do
         local name = (type(def) == "table" and (def.name or def[1])) or tostring(def)
         local icon = (type(def) == "table" and (def.icon or def[2])) or nil
+        local opts = (type(def) == "table" and def) or {}
         if name then
-            self:CreateTab(name, icon)
+            self:CreateTab(name, icon, {
+                activeIcon = opts.activeIcon,
+                inactiveIcon = opts.inactiveIcon
+            })
         end
     end
 end
