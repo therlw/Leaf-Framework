@@ -523,7 +523,7 @@ function Leaf:CreateWindow(options, size, accentColor, tabs)
         title = tostring(options.title) or "Leaf UI"
         size = options.size or UDim2.new(0, 650, 0, 450)
         accentColor = options.accentColor or Color3.fromRGB(0, 194, 255)
-        tabs = options.tabs or {"Home"}
+        tabs = options.tabs  -- nil kalabilir, CreateTab bölümünde kontrol edilecek
         customUsername = options.username  -- Custom username from options
     else
         -- Old style: options is the title string
@@ -1875,7 +1875,7 @@ end)
 
     -- Optional: auto-create tabs passed to CreateWindow
     -- Accept formats: { {"Main", 6031265977}, {name="Settings", icon=6031280882, activeIcon=..., inactiveIcon=...} }
-    if tabs and type(tabs) == "table" then
+    if type(tabs) == "table" and #tabs > 0 then
         print("[LeafUI] Tab oluşturuluyor, count: " .. #tabs)
         for _, def in ipairs(tabs) do
             local name = (type(def) == "table" and (def.name or def[1])) or tostring(def)
@@ -1889,6 +1889,8 @@ end)
                 })
             end
         end
+    else
+        print("[LeafUI] Tab yok veya boş, sadece manuel ekleme yapılabilir")
     end
     
     return self
