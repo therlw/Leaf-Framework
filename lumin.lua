@@ -1,7 +1,12 @@
 --[[
-    RLWSCRIPTS PREMIUM LIBRARY v1.0
+    RLWSCRIPTS PREMIUM LIBRARY v1.1
     Design: React/Tailwind Port (1:1 Replica)
-    Author: AI Generated
+    Author: RLW System
+    
+    HOW TO USE:
+    1. Upload this code to a RAW link (GitHub Gist, Pastebin, etc.)
+    2. Use loadstring to import it:
+       local Library = loadstring(game:HttpGet("YOUR_RAW_LINK_HERE"))()
 ]]
 
 local Players = game:GetService("Players")
@@ -9,6 +14,7 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
+local HttpService = game:GetService("HttpService")
 
 --// Library Configuration & Colors
 local Library = {}
@@ -119,6 +125,8 @@ function Library:Window(options)
     local GUI = Library:Init()
     local Tabs = {}
     local FirstTab = true
+    local UIKey = options.Key or Enum.KeyCode.RightShift
+    local UIVisible = true
 
     -- Main Frame
     local Main = Create("Frame", {
@@ -171,6 +179,14 @@ function Library:Window(options)
     })
 
     MakeDraggable(Header, Main)
+
+    -- Toggle Key Listener
+    UserInputService.InputBegan:Connect(function(input, gpe)
+        if not gpe and input.KeyCode == UIKey then
+            UIVisible = not UIVisible
+            GUI.Enabled = UIVisible
+        end
+    end)
 
     -- Logo
     local LogoBox = Create("Frame", {
@@ -233,7 +249,7 @@ function Library:Window(options)
     })
     CloseBtn.MouseEnter:Connect(function() Tween(CloseIcon, {ImageColor3 = Config.Colors.Error}) end)
     CloseBtn.MouseLeave:Connect(function() Tween(CloseIcon, {ImageColor3 = Config.Colors.Muted}) end)
-    CloseBtn.MouseButton1Click:Connect(function() Main:Destroy() end)
+    CloseBtn.MouseButton1Click:Connect(function() GUI:Destroy() end)
 
     -- Content Layout
     local Sidebar = Create("Frame", {
@@ -558,6 +574,26 @@ function Library:Window(options)
             -- ELEMENTS
             local Elements = {}
 
+            -- LABEL
+            function Elements:Label(text)
+                local LabelFrame = Create("Frame", {
+                    Parent = Container,
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 0, 20)
+                })
+                Create("TextLabel", {
+                    Parent = LabelFrame,
+                    BackgroundTransparency = 1,
+                    Text = text,
+                    TextColor3 = Config.Colors.Text,
+                    Font = Config.Font,
+                    TextSize = 13,
+                    Size = UDim2.new(1, 0, 1, 0),
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextWrapped = true
+                })
+            end
+
             -- TOGGLE
             function Elements:Toggle(name, default, callback)
                 local Toggled = default or false
@@ -750,6 +786,183 @@ function Library:Window(options)
                 end)
             end
 
+            -- TEXTBOX
+            function Elements:Textbox(name, placeholder, callback)
+                local BoxFrame = Create("Frame", {
+                    Parent = Container,
+                    BackgroundColor3 = Config.Colors.SurfaceHighlight,
+                    Size = UDim2.new(1, 0, 0, 42)
+                })
+                Create("UICorner", {Parent = BoxFrame, CornerRadius = Config.CornerRadius})
+                local Stroke = Create("UIStroke", {Parent = BoxFrame, Color = Config.Colors.Border, Thickness = 1})
+
+                Create("TextLabel", {
+                    Parent = BoxFrame,
+                    BackgroundTransparency = 1,
+                    Text = name,
+                    TextColor3 = Config.Colors.Muted,
+                    Font = Config.Font,
+                    TextSize = 13,
+                    Position = UDim2.new(0, 12, 0, 0),
+                    Size = UDim2.new(1, -24, 0.5, 0),
+                    TextXAlignment = Enum.TextXAlignment.Left
+                })
+
+                local Input = Create("TextBox", {
+                    Parent = BoxFrame,
+                    BackgroundTransparency = 1,
+                    Text = "",
+                    PlaceholderText = placeholder or "...",
+                    PlaceholderColor3 = Color3.fromRGB(100, 100, 100),
+                    TextColor3 = Config.Colors.Text,
+                    Font = Config.Font,
+                    TextSize = 12,
+                    Position = UDim2.new(0, 12, 0.5, 0),
+                    Size = UDim2.new(1, -24, 0.5, 0),
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    ClearTextOnFocus = false
+                })
+
+                Input.Focused:Connect(function()
+                    Tween(Stroke, {Color = Config.Colors.Primary}, 0.2)
+                end)
+                
+                Input.FocusLost:Connect(function()
+                    Tween(Stroke, {Color = Config.Colors.Border}, 0.2)
+                    callback(Input.Text)
+                end)
+            end
+
+            -- KEYBIND
+            function Elements:Keybind(name, default, callback)
+                local Key = default or Enum.KeyCode.RightShift
+                local Waiting = false
+
+                local KeyFrame = Create("TextButton", {
+                    Parent = Container,
+                    BackgroundColor3 = Config.Colors.SurfaceHighlight,
+                    Size = UDim2.new(1, 0, 0, 36),
+                    AutoButtonColor = false,
+                    Text = ""
+                })
+                Create("UICorner", {Parent = KeyFrame, CornerRadius = Config.CornerRadius})
+                Create("UIStroke", {Parent = KeyFrame, Color = Config.Colors.Border, Thickness = 1})
+
+                Create("TextLabel", {
+                    Parent = KeyFrame,
+                    BackgroundTransparency = 1,
+                    Text = name,
+                    TextColor3 = Config.Colors.Muted,
+                    Font = Config.Font,
+                    TextSize = 13,
+                    Position = UDim2.new(0, 12, 0, 0),
+                    Size = UDim2.new(1, -12, 1, 0),
+                    TextXAlignment = Enum.TextXAlignment.Left
+                })
+
+                local BindLabel = Create("TextLabel", {
+                    Parent = KeyFrame,
+                    BackgroundColor3 = Config.Colors.Surface,
+                    Text = Key.Name,
+                    TextColor3 = Config.Colors.Text,
+                    Font = Enum.Font.Code,
+                    TextSize = 11,
+                    Position = UDim2.new(1, -12, 0.5, 0),
+                    AnchorPoint = Vector2.new(1, 0.5),
+                    Size = UDim2.new(0, 0, 0, 20),
+                    AutomaticSize = Enum.AutomaticSize.X
+                })
+                Create("UICorner", {Parent = BindLabel, CornerRadius = UDim.new(0, 4)})
+                Create("UIPadding", {Parent = BindLabel, PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8)})
+
+                KeyFrame.MouseButton1Click:Connect(function()
+                    Waiting = true
+                    BindLabel.Text = "..."
+                    BindLabel.TextColor3 = Config.Colors.Primary
+                end)
+
+                UserInputService.InputBegan:Connect(function(input)
+                    if Waiting and input.UserInputType == Enum.UserInputType.Keyboard then
+                        Key = input.KeyCode
+                        BindLabel.Text = Key.Name
+                        BindLabel.TextColor3 = Config.Colors.Text
+                        Waiting = false
+                        callback(Key)
+                    end
+                end)
+            end
+
+            -- COLOR PICKER (Simple HSV)
+            function Elements:ColorPicker(name, default, callback)
+                local Color = default or Color3.new(1, 1, 1)
+                local Open = false
+
+                local ColorFrame = Create("Frame", {
+                    Parent = Container,
+                    BackgroundColor3 = Config.Colors.SurfaceHighlight,
+                    Size = UDim2.new(1, 0, 0, 36),
+                    ClipsDescendants = true
+                })
+                Create("UICorner", {Parent = ColorFrame, CornerRadius = Config.CornerRadius})
+                local Stroke = Create("UIStroke", {Parent = ColorFrame, Color = Config.Colors.Border, Thickness = 1})
+
+                local Trigger = Create("TextButton", {
+                    Parent = ColorFrame,
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 0, 36),
+                    Text = ""
+                })
+
+                Create("TextLabel", {
+                    Parent = Trigger,
+                    BackgroundTransparency = 1,
+                    Text = name,
+                    TextColor3 = Config.Colors.Muted,
+                    Font = Config.Font,
+                    TextSize = 13,
+                    Position = UDim2.new(0, 12, 0, 0),
+                    Size = UDim2.new(1, -12, 1, 0),
+                    TextXAlignment = Enum.TextXAlignment.Left
+                })
+
+                local Preview = Create("Frame", {
+                    Parent = Trigger,
+                    BackgroundColor3 = Color,
+                    Size = UDim2.new(0, 24, 0, 14),
+                    Position = UDim2.new(1, -12, 0.5, 0),
+                    AnchorPoint = Vector2.new(1, 0.5)
+                })
+                Create("UICorner", {Parent = Preview, CornerRadius = UDim.new(0, 4)})
+
+                -- Pickers
+                local PickerArea = Create("Frame", {
+                    Parent = ColorFrame,
+                    BackgroundTransparency = 1,
+                    Position = UDim2.new(0, 12, 0, 40),
+                    Size = UDim2.new(1, -24, 0, 60)
+                })
+
+                -- RGB sliders logic omitted for brevity in single file, using simple HSV bar
+                local HueBar = Create("ImageButton", {
+                    Parent = PickerArea,
+                    Size = UDim2.new(1, 0, 0, 12),
+                    Image = "rbxassetid://6034832530" -- Color Spectrum
+                })
+                Create("UICorner", {Parent = HueBar, CornerRadius = UDim.new(0, 4)})
+
+                Trigger.MouseButton1Click:Connect(function()
+                    Open = not Open
+                    Tween(ColorFrame, {Size = UDim2.new(1, 0, 0, Open and 110 or 36)}, 0.2)
+                end)
+                
+                -- Simplified for this file: clicking bar sets random color to demonstrate callback
+                HueBar.MouseButton1Click:Connect(function()
+                    Color = Color3.fromHSV(math.random(), 1, 1)
+                    Preview.BackgroundColor3 = Color
+                    callback(Color)
+                end)
+            end
+
             -- DROPDOWN
             function Elements:Dropdown(name, options, default, callback)
                 local IsOpen = false
@@ -759,7 +972,8 @@ function Library:Window(options)
                     Parent = Container,
                     BackgroundColor3 = Config.Colors.SurfaceHighlight,
                     Size = UDim2.new(1, 0, 0, 42),
-                    ClipsDescendants = true
+                    ClipsDescendants = true,
+                    ZIndex = 2
                 })
                 Create("UICorner", {Parent = DropFrame, CornerRadius = Config.CornerRadius})
                 local Stroke = Create("UIStroke", {Parent = DropFrame, Color = Config.Colors.Border, Thickness = 1})
@@ -768,7 +982,8 @@ function Library:Window(options)
                     Parent = DropFrame,
                     BackgroundTransparency = 1,
                     Size = UDim2.new(1, 0, 0, 42),
-                    Text = ""
+                    Text = "",
+                    ZIndex = 2
                 })
 
                 Create("TextLabel", {
@@ -779,7 +994,8 @@ function Library:Window(options)
                     Font = Config.Font,
                     TextSize = 11,
                     Position = UDim2.new(0, 12, 0, 6),
-                    TextXAlignment = Enum.TextXAlignment.Left
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    ZIndex = 2
                 })
 
                 local SelLabel = Create("TextLabel", {
@@ -790,7 +1006,8 @@ function Library:Window(options)
                     Font = Config.Font,
                     TextSize = 13,
                     Position = UDim2.new(0, 12, 0, 22),
-                    TextXAlignment = Enum.TextXAlignment.Left
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    ZIndex = 2
                 })
 
                 local Arrow = Create("ImageLabel", {
@@ -800,14 +1017,19 @@ function Library:Window(options)
                     ImageColor3 = Config.Colors.Muted,
                     Size = UDim2.new(0, 16, 0, 16),
                     Position = UDim2.new(1, -12, 0.5, 0),
-                    AnchorPoint = Vector2.new(1, 0.5)
+                    AnchorPoint = Vector2.new(1, 0.5),
+                    ZIndex = 2
                 })
 
-                local List = Create("Frame", {
+                local List = Create("ScrollingFrame", {
                     Parent = DropFrame,
                     BackgroundTransparency = 1,
                     Position = UDim2.new(0, 0, 0, 42),
-                    Size = UDim2.new(1, 0, 0, 0)
+                    Size = UDim2.new(1, 0, 1, -42),
+                    CanvasSize = UDim2.new(0,0,0,0),
+                    ScrollBarThickness = 2,
+                    AutomaticCanvasSize = Enum.AutomaticSize.Y,
+                    ZIndex = 3
                 })
                 Create("UIListLayout", {Parent = List, SortOrder = Enum.SortOrder.LayoutOrder})
 
@@ -824,7 +1046,8 @@ function Library:Window(options)
                             TextColor3 = opt == Selection and Config.Colors.Primary or Config.Colors.Muted,
                             Font = Config.Font,
                             TextSize = 13,
-                            TextXAlignment = Enum.TextXAlignment.Left
+                            TextXAlignment = Enum.TextXAlignment.Left,
+                            ZIndex = 3
                         })
                         OptBtn.MouseButton1Click:Connect(function()
                             Selection = opt
@@ -841,7 +1064,7 @@ function Library:Window(options)
 
                 HeaderBtn.MouseButton1Click:Connect(function()
                     IsOpen = not IsOpen
-                    local targetHeight = IsOpen and (42 + (#options * 32)) or 42
+                    local targetHeight = IsOpen and math.min(180, 42 + (#options * 32)) or 42
                     Tween(DropFrame, {Size = UDim2.new(1, 0, 0, targetHeight)}, 0.2)
                     Tween(Arrow, {Rotation = IsOpen and 180 or 0}, 0.2)
                     Tween(Stroke, {Color = IsOpen and Config.Colors.Primary or Config.Colors.Border}, 0.2)
@@ -856,59 +1079,4 @@ function Library:Window(options)
     return WindowFunctions
 end
 
---[[ 
-    --------------------------------------------------
-    EXAMPLE USAGE - OYUN ENTEGRASYONU ÖRNEĞİ
-    --------------------------------------------------
-]]
-
-local Window = Library:Window({Name = "RLWSCRIPTS", Version = "v1.0 PREMIUM"})
-
--- TAB 1: COMBAT
-local Combat = Window:Tab("Combat", "rbxassetid://6031265976") -- Lightning Icon
-local AimbotSection = Combat:Section("Aimbot Settings")
-
-AimbotSection:Toggle("Enabled", false, function(v)
-    Library:Notify("Aimbot", v and "Silent Aim has been activated." or "Aimbot disabled.", v and "success" or "error")
-end)
-
-AimbotSection:Slider("FOV Radius", 50, 500, 150, function(v)
-    -- workspace.CurrentCamera.FOV = v
-end)
-
-AimbotSection:Dropdown("Target Part", {"Head", "Torso", "HumanoidRootPart"}, "Head", function(v)
-    print("Target set to:", v)
-end)
-
--- TAB 2: VISUALS
-local Visuals = Window:Tab("Visuals", "rbxassetid://6034156557") -- Eye Icon
-local ESPSection = Visuals:Section("ESP Configuration")
-
-ESPSection:Toggle("Box ESP", true, function(v) end)
-ESPSection:Toggle("Tracers", false, function(v) end)
-ESPSection:Slider("Render Distance", 500, 5000, 1500, function(v) end)
-
--- TAB 3: PLAYER
-local Player = Window:Tab("Player", "rbxassetid://6031243319") -- User Icon
-local MoveSection = Player:Section("Movement")
-
-MoveSection:Slider("WalkSpeed", 16, 200, 16, function(v)
-    if Players.LocalPlayer.Character then
-        Players.LocalPlayer.Character.Humanoid.WalkSpeed = v
-    end
-end)
-
-MoveSection:Slider("JumpPower", 50, 300, 50, function(v)
-    if Players.LocalPlayer.Character then
-        Players.LocalPlayer.Character.Humanoid.JumpPower = v
-    end
-end)
-
-MoveSection:Button("Reset Character", function()
-    if Players.LocalPlayer.Character then
-        Players.LocalPlayer.Character:BreakJoints()
-        Library:Notify("System", "Character has been reset.", "warning")
-    end
-end)
-
-Library:Notify("Welcome", "RLW Library Loaded Successfully!", "success")
+return Library
