@@ -320,7 +320,7 @@ function Library:Window(options)
         Size = UDim2.new(0, 32, 0, 32),
         Position = UDim2.new(0, 8, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
-        Image = Players.LocalPlayer:GetUserThumbnailAsync(Players.LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+        Image = Players:GetUserThumbnailAsync(Players.LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
     }).CornerRadius = UDim.new(1, 0)
     Create("TextLabel", {
         Parent = UserInfo,
