@@ -396,6 +396,29 @@ function Library:Window(options)
         ZIndex = 1
     })
 
+    -- Fix: Round Content Area corners (matches main window radius)
+    Create("UICorner", {Parent = Content, CornerRadius = UDim.new(0, 16)})
+
+    -- Fix: Filler for Top edge (Squares off Top-Left and Top-Right to flush with Header)
+    Create("Frame", {
+        Parent = Content,
+        BackgroundColor3 = Config.Colors.Background,
+        BorderSizePixel = 0,
+        Size = UDim2.new(1, 0, 0, 20),
+        Position = UDim2.new(0, 0, 0, 0),
+        ZIndex = 1
+    })
+
+    -- Fix: Filler for Left edge (Squares off Bottom-Left to flush with Sidebar)
+    Create("Frame", {
+        Parent = Content,
+        BackgroundColor3 = Config.Colors.Background,
+        BorderSizePixel = 0,
+        Size = UDim2.new(0, 20, 1, 0),
+        Position = UDim2.new(0, 0, 0, 0),
+        ZIndex = 1
+    })
+
     -- Background Decoration
     Create("ImageLabel", {
         Parent = Content,
