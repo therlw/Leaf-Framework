@@ -1,5 +1,5 @@
 --[[
-    RLWSCRIPTS PREMIUM LIBRARY v1.1
+    RLWSCRIPTS PREMIUM LIBRARY v1.2
     Design: React/Tailwind Port (1:1 Replica)
     Author: RLW System
     
@@ -63,7 +63,7 @@ local function Ripple(button)
             Position = UDim2.new(0.5, 0, 0.5, 0),
             AnchorPoint = Vector2.new(0.5, 0.5),
             Size = UDim2.new(0, 0, 0, 0),
-            ZIndex = 5
+            ZIndex = 10
         })
         local maxSize = math.max(button.AbsoluteSize.X, button.AbsoluteSize.Y) * 1.5
         Tween(ripple, {Size = UDim2.new(0, maxSize, 0, maxSize), ImageTransparency = 1}, 0.5)
@@ -125,6 +125,7 @@ function Library:Window(options)
     local GUI = Library:Init()
     local Tabs = {}
     local FirstTab = true
+    local TabCount = 0
     local UIKey = options.Key or Enum.KeyCode.RightShift
     local UIVisible = true
 
@@ -257,7 +258,8 @@ function Library:Window(options)
         BackgroundColor3 = Color3.fromRGB(15, 15, 18),
         Size = UDim2.new(0, 180, 1, -51),
         Position = UDim2.new(0, 0, 0, 51),
-        BorderSizePixel = 0
+        BorderSizePixel = 0,
+        ZIndex = 2
     })
     Create("Frame", { -- Sidebar Border
         Parent = Sidebar,
@@ -295,7 +297,8 @@ function Library:Window(options)
         Size = UDim2.new(1, 0, 1, -60),
         CanvasSize = UDim2.new(0,0,0,0),
         AutomaticCanvasSize = Enum.AutomaticSize.Y,
-        ScrollBarThickness = 0
+        ScrollBarThickness = 0,
+        ZIndex = 3
     })
     Create("UIListLayout", {
         Parent = TabContainer,
@@ -310,18 +313,27 @@ function Library:Window(options)
         BackgroundColor3 = Config.Colors.Surface,
         Size = UDim2.new(1, -24, 0, 48),
         Position = UDim2.new(0.5, 0, 1, -12),
-        AnchorPoint = Vector2.new(0.5, 1)
+        AnchorPoint = Vector2.new(0.5, 1),
+        ZIndex = 3
     })
     Create("UICorner", {Parent = UserInfo, CornerRadius = UDim.new(0, 8)})
     Create("UIStroke", {Parent = UserInfo, Color = Config.Colors.Border, Thickness = 1})
+    
+    -- Safe user thumbnail fetch
+    local success, headshot = pcall(function()
+        return Players:GetUserThumbnailAsync(Players.LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+    end)
+    
     Create("ImageLabel", {
         Parent = UserInfo,
         BackgroundColor3 = Config.Colors.SurfaceHighlight,
         Size = UDim2.new(0, 32, 0, 32),
         Position = UDim2.new(0, 8, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
-        Image = Players:GetUserThumbnailAsync(Players.LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+        Image = success and headshot or "rbxassetid://4483345998",
+        ZIndex = 4
     }).CornerRadius = UDim.new(1, 0)
+    
     Create("TextLabel", {
         Parent = UserInfo,
         BackgroundTransparency = 1,
@@ -330,7 +342,8 @@ function Library:Window(options)
         Font = Config.BoldFont,
         TextSize = 12,
         Position = UDim2.new(0, 48, 0, 10),
-        TextXAlignment = Enum.TextXAlignment.Left
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 4
     })
     Create("TextLabel", {
         Parent = UserInfo,
@@ -340,7 +353,8 @@ function Library:Window(options)
         Font = Config.Font,
         TextSize = 10,
         Position = UDim2.new(0, 48, 0, 24),
-        TextXAlignment = Enum.TextXAlignment.Left
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 4
     })
 
     -- Notification System
@@ -349,7 +363,8 @@ function Library:Window(options)
         BackgroundTransparency = 1,
         Size = UDim2.new(0, 300, 1, -20),
         Position = UDim2.new(1, -320, 0, 20),
-        ClipsDescendants = false
+        ClipsDescendants = false,
+        ZIndex = 100
     })
     Create("UIListLayout", {
         Parent = NotifyList,
@@ -367,7 +382,8 @@ function Library:Window(options)
             BackgroundColor3 = Config.Colors.Surface,
             Size = UDim2.new(1, 0, 0, 0), -- Animated height
             BackgroundTransparency = 0.1,
-            ClipsDescendants = true
+            ClipsDescendants = true,
+            ZIndex = 101
         })
         Create("UICorner", {Parent = Toast, CornerRadius = UDim.new(0, 8)})
         Create("UIStroke", {Parent = Toast, Color = Config.Colors.Border, Thickness = 1})
@@ -376,7 +392,8 @@ function Library:Window(options)
         Create("Frame", {
             Parent = Toast,
             BackgroundColor3 = color,
-            Size = UDim2.new(0, 3, 1, 0)
+            Size = UDim2.new(0, 3, 1, 0),
+            ZIndex = 102
         })
 
         local IconImg = Create("ImageLabel", {
@@ -385,7 +402,8 @@ function Library:Window(options)
             Image = icon,
             ImageColor3 = color,
             Size = UDim2.new(0, 20, 0, 20),
-            Position = UDim2.new(0, 12, 0, 12)
+            Position = UDim2.new(0, 12, 0, 12),
+            ZIndex = 102
         })
 
         Create("TextLabel", {
@@ -396,7 +414,8 @@ function Library:Window(options)
             Font = Config.BoldFont,
             TextSize = 14,
             Position = UDim2.new(0, 40, 0, 12),
-            TextXAlignment = Enum.TextXAlignment.Left
+            TextXAlignment = Enum.TextXAlignment.Left,
+            ZIndex = 102
         })
 
         Create("TextLabel", {
@@ -409,7 +428,8 @@ function Library:Window(options)
             Position = UDim2.new(0, 40, 0, 30),
             Size = UDim2.new(1, -50, 0, 20),
             TextXAlignment = Enum.TextXAlignment.Left,
-            TextWrapped = true
+            TextWrapped = true,
+            ZIndex = 102
         })
 
         -- Animation In
@@ -426,15 +446,19 @@ function Library:Window(options)
     local WindowFunctions = {}
 
     function WindowFunctions:Tab(name, icon)
+        TabCount = TabCount + 1
         local Tab = {}
         
         -- Tab Button
         local Btn = Create("TextButton", {
+            Name = name .. "_Tab",
             Parent = TabContainer,
             BackgroundTransparency = 1,
             Size = UDim2.new(1, 0, 0, 40),
             Text = "",
-            AutoButtonColor = false
+            AutoButtonColor = false,
+            LayoutOrder = TabCount,
+            ZIndex = 4
         })
         
         local ActiveIndicator = Create("Frame", {
@@ -442,7 +466,8 @@ function Library:Window(options)
             BackgroundColor3 = Config.Colors.Primary,
             Size = UDim2.new(0, 3, 1, 0),
             Position = UDim2.new(0, 0, 0, 0),
-            BackgroundTransparency = 1
+            BackgroundTransparency = 1,
+            ZIndex = 5
         })
         
         local TabIcon = Create("ImageLabel", {
@@ -452,7 +477,8 @@ function Library:Window(options)
             ImageColor3 = Config.Colors.Muted,
             Size = UDim2.new(0, 20, 0, 20),
             Position = UDim2.new(0, 16, 0.5, 0),
-            AnchorPoint = Vector2.new(0, 0.5)
+            AnchorPoint = Vector2.new(0, 0.5),
+            ZIndex = 5
         })
 
         local TabText = Create("TextLabel", {
@@ -464,7 +490,8 @@ function Library:Window(options)
             TextSize = 13,
             Position = UDim2.new(0, 48, 0.5, 0),
             AnchorPoint = Vector2.new(0, 0.5),
-            TextXAlignment = Enum.TextXAlignment.Left
+            TextXAlignment = Enum.TextXAlignment.Left,
+            ZIndex = 5
         })
 
         -- Tab Content Page
@@ -476,7 +503,8 @@ function Library:Window(options)
             ScrollBarThickness = 2,
             ScrollBarImageColor3 = Config.Colors.Border,
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
-            Visible = false
+            Visible = false,
+            ZIndex = 5
         })
         Create("UIPadding", {Parent = Page, PaddingTop = UDim.new(0, 20), PaddingLeft = UDim.new(0, 20), PaddingRight = UDim.new(0, 20), PaddingBottom = UDim.new(0, 20)})
         
@@ -523,8 +551,12 @@ function Library:Window(options)
         table.insert(Tabs, {Icon = TabIcon, Text = TabText, Ind = ActiveIndicator, Page = Page})
 
         if FirstTab then
-            Activate()
             FirstTab = false
+            task.spawn(function()
+                -- Wait a tiny bit for UI to mount before activating first tab
+                task.wait()
+                Activate()
+            end)
         end
 
         -- Section Handling
