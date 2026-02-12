@@ -212,7 +212,7 @@ function Library:Window(options)
     Create("ImageLabel", {
         Parent = LogoBox,
         BackgroundTransparency = 1,
-        Image = "rbxassetid://6034287699", -- Terminal Icon
+        Image = "rbxassetid://79185829747284", -- Terminal Icon
         ImageColor3 = Config.Colors.Primary,
         Size = UDim2.new(0, 24, 0, 24),
         Position = UDim2.new(0.5, 0, 0.5, 0),
