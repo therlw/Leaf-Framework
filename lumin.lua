@@ -1,5 +1,5 @@
 --[[
-    RLWSCRIPTS PREMIUM LIBRARY v1.2
+    RLWSCRIPTS PREMIUM LIBRARY v1.3
     Design: React/Tailwind Port (1:1 Replica)
     Author: RLW System
     
@@ -63,7 +63,7 @@ local function Ripple(button)
             Position = UDim2.new(0.5, 0, 0.5, 0),
             AnchorPoint = Vector2.new(0.5, 0.5),
             Size = UDim2.new(0, 0, 0, 0),
-            ZIndex = 10
+            ZIndex = 15
         })
         local maxSize = math.max(button.AbsoluteSize.X, button.AbsoluteSize.Y) * 1.5
         Tween(ripple, {Size = UDim2.new(0, maxSize, 0, maxSize), ImageTransparency = 1}, 0.5)
@@ -137,7 +137,8 @@ function Library:Window(options)
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         Size = UDim2.new(0, 750, 0, 500),
-        ClipsDescendants = false
+        ClipsDescendants = false,
+        ZIndex = 1
     })
     Create("UICorner", {Parent = Main, CornerRadius = UDim.new(0, 12)})
     Create("UIStroke", {Parent = Main, Color = Config.Colors.Border, Thickness = 1})
@@ -151,7 +152,7 @@ function Library:Window(options)
         ImageTransparency = 0.4,
         Position = UDim2.new(0, -30, 0, -30),
         Size = UDim2.new(1, 60, 1, 60),
-        ZIndex = -1,
+        ZIndex = 0,
         ScaleType = Enum.ScaleType.Slice,
         SliceCenter = Rect.new(23,23,277,277)
     })
@@ -161,7 +162,8 @@ function Library:Window(options)
         Parent = Main,
         Name = "Header",
         BackgroundColor3 = Config.Colors.Surface,
-        Size = UDim2.new(1, 0, 0, 50)
+        Size = UDim2.new(1, 0, 0, 50),
+        ZIndex = 2
     })
     Create("UICorner", {Parent = Header, CornerRadius = UDim.new(0, 12)})
     Create("Frame", { -- Fix bottom corners
@@ -169,14 +171,16 @@ function Library:Window(options)
         BackgroundColor3 = Config.Colors.Surface,
         Size = UDim2.new(1, 0, 0, 10),
         Position = UDim2.new(0, 0, 1, -10),
-        BorderSizePixel = 0
+        BorderSizePixel = 0,
+        ZIndex = 2
     })
     Create("Frame", { -- Divider
         Parent = Header,
         BackgroundColor3 = Config.Colors.Border,
         Size = UDim2.new(1, 0, 0, 1),
         Position = UDim2.new(0, 0, 1, 0),
-        BorderSizePixel = 0
+        BorderSizePixel = 0,
+        ZIndex = 3
     })
 
     MakeDraggable(Header, Main)
@@ -195,7 +199,8 @@ function Library:Window(options)
         BackgroundColor3 = Config.Colors.Background,
         Size = UDim2.new(0, 32, 0, 32),
         Position = UDim2.new(0, 16, 0.5, 0),
-        AnchorPoint = Vector2.new(0, 0.5)
+        AnchorPoint = Vector2.new(0, 0.5),
+        ZIndex = 5
     })
     Create("UICorner", {Parent = LogoBox, CornerRadius = UDim.new(0, 8)})
     Create("UIGradient", {Parent = LogoBox, Color = ColorSequence.new(Config.Colors.Primary, Config.Colors.PrimaryDark), Rotation = 45})
@@ -205,7 +210,8 @@ function Library:Window(options)
         Image = "rbxassetid://3944693858", -- Terminal Icon
         Size = UDim2.new(0, 18, 0, 18),
         Position = UDim2.new(0.5, 0, 0.5, 0),
-        AnchorPoint = Vector2.new(0.5, 0.5)
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        ZIndex = 6
     })
 
     -- Title
@@ -217,7 +223,8 @@ function Library:Window(options)
         Font = Config.BoldFont,
         TextSize = 16,
         Position = UDim2.new(0, 60, 0, 10),
-        TextXAlignment = Enum.TextXAlignment.Left
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 5
     })
     Create("TextLabel", {
         Parent = Header,
@@ -227,7 +234,8 @@ function Library:Window(options)
         Font = Enum.Font.Code,
         TextSize = 11,
         Position = UDim2.new(0, 60, 0, 26),
-        TextXAlignment = Enum.TextXAlignment.Left
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 5
     })
 
     -- Close Button
@@ -237,7 +245,8 @@ function Library:Window(options)
         Text = "",
         Size = UDim2.new(0, 30, 0, 30),
         Position = UDim2.new(1, -10, 0.5, 0),
-        AnchorPoint = Vector2.new(1, 0.5)
+        AnchorPoint = Vector2.new(1, 0.5),
+        ZIndex = 5
     })
     local CloseIcon = Create("ImageLabel", {
         Parent = CloseBtn,
@@ -246,7 +255,8 @@ function Library:Window(options)
         ImageColor3 = Config.Colors.Muted,
         Size = UDim2.new(0, 18, 0, 18),
         Position = UDim2.new(0.5, 0, 0.5, 0),
-        AnchorPoint = Vector2.new(0.5, 0.5)
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        ZIndex = 6
     })
     CloseBtn.MouseEnter:Connect(function() Tween(CloseIcon, {ImageColor3 = Config.Colors.Error}) end)
     CloseBtn.MouseLeave:Connect(function() Tween(CloseIcon, {ImageColor3 = Config.Colors.Muted}) end)
@@ -259,14 +269,15 @@ function Library:Window(options)
         Size = UDim2.new(0, 180, 1, -51),
         Position = UDim2.new(0, 0, 0, 51),
         BorderSizePixel = 0,
-        ZIndex = 2
+        ZIndex = 5
     })
     Create("Frame", { -- Sidebar Border
         Parent = Sidebar,
         BackgroundColor3 = Config.Colors.Border,
         Size = UDim2.new(0, 1, 1, 0),
         Position = UDim2.new(1, -1, 0, 0),
-        BorderSizePixel = 0
+        BorderSizePixel = 0,
+        ZIndex = 6
     })
 
     local Content = Create("Frame", {
@@ -275,7 +286,8 @@ function Library:Window(options)
         Size = UDim2.new(1, -180, 1, -51),
         Position = UDim2.new(0, 180, 0, 51),
         BorderSizePixel = 0,
-        ClipsDescendants = true
+        ClipsDescendants = true,
+        ZIndex = 1
     })
 
     -- Background Decoration (Glow)
@@ -295,16 +307,22 @@ function Library:Window(options)
         Parent = Sidebar,
         BackgroundTransparency = 1,
         Size = UDim2.new(1, 0, 1, -60),
-        CanvasSize = UDim2.new(0,0,0,0),
-        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+        CanvasSize = UDim2.new(0, 0, 0, 0), -- Updated dynamically
         ScrollBarThickness = 0,
-        ZIndex = 3
+        ZIndex = 6
     })
-    Create("UIListLayout", {
+    
+    local TabList = Create("UIListLayout", {
         Parent = TabContainer,
         Padding = UDim.new(0, 4),
         SortOrder = Enum.SortOrder.LayoutOrder
     })
+    
+    -- Fix: Manually update canvas size because AutomaticCanvasSize is buggy on some executors
+    TabList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        TabContainer.CanvasSize = UDim2.new(0, 0, 0, TabList.AbsoluteContentSize.Y + 20)
+    end)
+    
     Create("UIPadding", {Parent = TabContainer, PaddingTop = UDim.new(0, 12)})
 
     -- User Info (Bottom Sidebar)
@@ -314,7 +332,7 @@ function Library:Window(options)
         Size = UDim2.new(1, -24, 0, 48),
         Position = UDim2.new(0.5, 0, 1, -12),
         AnchorPoint = Vector2.new(0.5, 1),
-        ZIndex = 3
+        ZIndex = 6
     })
     Create("UICorner", {Parent = UserInfo, CornerRadius = UDim.new(0, 8)})
     Create("UIStroke", {Parent = UserInfo, Color = Config.Colors.Border, Thickness = 1})
@@ -331,7 +349,7 @@ function Library:Window(options)
         Position = UDim2.new(0, 8, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
         Image = success and headshot or "rbxassetid://4483345998",
-        ZIndex = 4
+        ZIndex = 7
     }).CornerRadius = UDim.new(1, 0)
     
     Create("TextLabel", {
@@ -343,7 +361,7 @@ function Library:Window(options)
         TextSize = 12,
         Position = UDim2.new(0, 48, 0, 10),
         TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex = 4
+        ZIndex = 7
     })
     Create("TextLabel", {
         Parent = UserInfo,
@@ -354,7 +372,7 @@ function Library:Window(options)
         TextSize = 10,
         Position = UDim2.new(0, 48, 0, 24),
         TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex = 4
+        ZIndex = 7
     })
 
     -- Notification System
@@ -458,7 +476,7 @@ function Library:Window(options)
             Text = "",
             AutoButtonColor = false,
             LayoutOrder = TabCount,
-            ZIndex = 4
+            ZIndex = 7
         })
         
         local ActiveIndicator = Create("Frame", {
@@ -467,7 +485,7 @@ function Library:Window(options)
             Size = UDim2.new(0, 3, 1, 0),
             Position = UDim2.new(0, 0, 0, 0),
             BackgroundTransparency = 1,
-            ZIndex = 5
+            ZIndex = 8
         })
         
         local TabIcon = Create("ImageLabel", {
@@ -478,7 +496,7 @@ function Library:Window(options)
             Size = UDim2.new(0, 20, 0, 20),
             Position = UDim2.new(0, 16, 0.5, 0),
             AnchorPoint = Vector2.new(0, 0.5),
-            ZIndex = 5
+            ZIndex = 8
         })
 
         local TabText = Create("TextLabel", {
@@ -491,7 +509,7 @@ function Library:Window(options)
             Position = UDim2.new(0, 48, 0.5, 0),
             AnchorPoint = Vector2.new(0, 0.5),
             TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex = 5
+            ZIndex = 8
         })
 
         -- Tab Content Page
