@@ -223,10 +223,11 @@ function Library:Window(options)
         ZIndex = 4
     })
     
+    -- Main Icon (Terminal/Code)
     Create("ImageLabel", {
         Parent = LogoBox,
         BackgroundTransparency = 1,
-        Image = "rbxassetid://3944693858",
+        Image = "rbxassetid://6034287699", -- Terminal Icon
         Size = UDim2.new(0, 18, 0, 18),
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
