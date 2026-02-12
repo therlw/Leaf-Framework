@@ -201,34 +201,20 @@ function Library:Window(options)
 
     local LogoBox = Create("Frame", {
         Parent = LogoContainer,
-        BackgroundColor3 = Config.Colors.Background,
+        BackgroundTransparency = 1,
         Size = UDim2.new(0, 32, 0, 32),
         Position = UDim2.new(0, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
         ZIndex = 5
     })
-    Create("UICorner", {Parent = LogoBox, CornerRadius = UDim.new(0, 8)})
-    Create("UIGradient", {Parent = LogoBox, Color = ColorSequence.new(Config.Colors.Primary, Config.Colors.PrimaryDark), Rotation = 45})
     
-    -- Logo Glow
-    Create("ImageLabel", {
-        Parent = LogoBox,
-        BackgroundTransparency = 1,
-        Image = "rbxassetid://5028857472",
-        ImageColor3 = Config.Colors.Primary,
-        Size = UDim2.new(2, 0, 2, 0),
-        Position = UDim2.new(0.5, 0, 0.5, 0),
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        ImageTransparency = 0.6,
-        ZIndex = 4
-    })
-    
-    -- Main Icon (Terminal/Code)
+    -- Main Icon (Terminal/Code) - Box removed, just icon
     Create("ImageLabel", {
         Parent = LogoBox,
         BackgroundTransparency = 1,
         Image = "rbxassetid://6034287699", -- Terminal Icon
-        Size = UDim2.new(0, 18, 0, 18),
+        ImageColor3 = Config.Colors.Primary,
+        Size = UDim2.new(0, 24, 0, 24),
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         ZIndex = 6
