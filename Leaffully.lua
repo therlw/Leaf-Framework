@@ -435,7 +435,7 @@ local NavConfig = {
         Size = UDim2.new(1, -16, 0, 84),                -- Genişlik/yükseklik
         Position = UDim2.new(0, 8, 0, 64),              -- Konum
         BackgroundColor = Theme.Tertiary,               -- Arkaplan rengi
-        UsernameText = nil,                             -- Varsayılan: title.." User" (nil bırak = otomatik)
+        UsernameText = nil,                             -- Varsayılan: oyuncu adını gösterir (nil)
         UsernameTextColor = Theme.Text,                 -- Kullanıcı adı rengi
         SubInfoText = "Premium Member",                -- Alt bilgi metni
         SubInfoTextColor = Theme.TextDim,               -- Alt bilgi rengi
@@ -517,16 +517,24 @@ local NavConfig = {
 function Leaf:CreateWindow(options, size, accentColor, tabs)
     -- Handle both old style (title, size, color, tabs) and new style (options table)
     local title
+    local customUsername = nil
     if type(options) == "table" then
         -- New style: options is a table
         title = tostring(options.title) or "Leaf UI"
         size = options.size or UDim2.new(0, 650, 0, 450)
         accentColor = options.accentColor or Color3.fromRGB(0, 194, 255)
         tabs = options.tabs or {"Home"}
+        customUsername = options.username  -- Custom username from options
     else
         -- Old style: options is the title string
         title = tostring(options) or "Leaf UI"
-        -- size, accentColor, tabs remain as passed
+    end
+    
+    -- Set custom username in NavConfig if provided
+    if customUsername then
+        NavConfig.Profile.UsernameText = customUsername
+    else
+        NavConfig.Profile.UsernameText = nil  -- Will use actual player name
     end
     
     local self = setmetatable({}, Leaf)
@@ -1013,7 +1021,14 @@ function Leaf:CreateWindow(options, size, accentColor, tabs)
     Username.Position = UDim2.new(0, 64, 0, 10)
     Username.BackgroundTransparency = 1
     Username.Font = Enum.Font.GothamBold
-    Username.Text = NavConfig.Profile.UsernameText or (title.." User")
+    -- Get actual player name, fallback to title + User if not available
+    local playerName = "Player"
+    pcall(function()
+        if game.Players and game.Players.LocalPlayer then
+            playerName = game.Players.LocalPlayer.Name or game.Players.LocalPlayer.DisplayName or "Player"
+        end
+    end)
+    Username.Text = NavConfig.Profile.UsernameText or playerName
     Username.TextSize = 16
     Username.TextColor3 = NavConfig.Profile.UsernameTextColor
     Username.ZIndex = 5
