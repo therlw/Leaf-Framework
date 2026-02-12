@@ -520,6 +520,8 @@ function Leaf:CreateWindow(title, size, accentColor, tabs)
     self.CurrentTab = nil
     self.Elements = {}
     self.Notifications = {}
+    -- Safely handle title
+    title = tostring(title) or "Leaf UI"
     self.ConfigPath = "Leaf_"..(title:gsub("%s+",""))..".json"
     self.State = { 
         Position = {0.5, -300, 0.5, -200}, 
@@ -529,8 +531,12 @@ function Leaf:CreateWindow(title, size, accentColor, tabs)
         Theme = "Dark"
     }
     
-    -- Load saved configuration
-    if isfile and readfile and isfile(self.ConfigPath) then
+    -- Load saved configuration (with executor compatibility check)
+    local useFileSystem = pcall(function()
+        return isfile and readfile and writefile
+    end)
+    
+    if useFileSystem and isfile(self.ConfigPath) then
         local raw = readfile(self.ConfigPath)
         if raw then
             local ok, dec = pcall(HttpService.JSONDecode, HttpService, raw)
@@ -542,7 +548,7 @@ function Leaf:CreateWindow(title, size, accentColor, tabs)
     
     -- Create UI container
     local UI = Instance.new("ScreenGui")
-    UI.Name = "LeafUI_"..title:gsub("%s+", "")
+    UI.Name = "LeafUI_"..(tostring(title) or ""):gsub("%s+", "")
     UI.ResetOnSpawn = false
     UI.ZIndexBehavior = Enum.ZIndexBehavior.Global
     UI.Parent = CoreGui
