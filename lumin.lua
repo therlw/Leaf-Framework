@@ -1,5 +1,5 @@
 --[[
-    RLWSCRIPTS PREMIUM LIBRARY v1.3
+    RLWSCRIPTS PREMIUM LIBRARY v1.4 (Debug & Fixes)
     Design: React/Tailwind Port (1:1 Replica)
     Author: RLW System
     
@@ -8,6 +8,8 @@
     2. Use loadstring to import it:
        local Library = loadstring(game:HttpGet("YOUR_RAW_LINK_HERE"))()
 ]]
+
+print("[RLW LIB] Initializing Library...")
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -122,6 +124,7 @@ function Library:Init()
 end
 
 function Library:Window(options)
+    print("[RLW LIB] Creating Window...")
     local GUI = Library:Init()
     local Tabs = {}
     local FirstTab = true
@@ -342,7 +345,8 @@ function Library:Window(options)
         return Players:GetUserThumbnailAsync(Players.LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
     end)
     
-    Create("ImageLabel", {
+    -- FIXED: Create ImageLabel then add UICorner separately
+    local UserImg = Create("ImageLabel", {
         Parent = UserInfo,
         BackgroundColor3 = Config.Colors.SurfaceHighlight,
         Size = UDim2.new(0, 32, 0, 32),
@@ -350,7 +354,8 @@ function Library:Window(options)
         AnchorPoint = Vector2.new(0, 0.5),
         Image = success and headshot or "rbxassetid://4483345998",
         ZIndex = 7
-    }).CornerRadius = UDim.new(1, 0)
+    })
+    Create("UICorner", {Parent = UserImg, CornerRadius = UDim.new(1, 0)}) -- Circle
     
     Create("TextLabel", {
         Parent = UserInfo,
@@ -392,6 +397,7 @@ function Library:Window(options)
     })
 
     function Library:Notify(title, msg, type)
+        print("[RLW LIB] Notify: ", title)
         local color = type == "success" and Config.Colors.Success or (type == "error" and Config.Colors.Error or Config.Colors.Primary)
         local icon = type == "success" and "rbxassetid://6031094667" or (type == "error" and "rbxassetid://6031094678" or "rbxassetid://6031091224")
 
@@ -464,6 +470,7 @@ function Library:Window(options)
     local WindowFunctions = {}
 
     function WindowFunctions:Tab(name, icon)
+        print("[RLW LIB] Creating Tab: " .. tostring(name))
         TabCount = TabCount + 1
         local Tab = {}
         
@@ -582,6 +589,7 @@ function Library:Window(options)
         local LeftCount, RightCount = 0, 0
 
         function TabFunctions:Section(title)
+            print("[RLW LIB] Creating Section: " .. tostring(title))
             local Parent = LeftCol
             if RightCount < LeftCount then
                 Parent = RightCol
