@@ -535,8 +535,9 @@ function Leaf:CreateWindow(options, size, accentColor, tabs)
     self.Elements = {}
     self.Notifications = {}
     
-    -- Safe config path
-    self.ConfigPath = "Leaf_"..title:gsub("%s+",""):gsub("[^%w_]","_")..".json"
+    -- Safe config path (handle nil title)
+    local safeTitle = tostring(title) or "Default"
+    self.ConfigPath = "Leaf_"..safeTitle:gsub("%s+",""):gsub("[^%w_]","_")..".json"
     self.State = { 
         Position = {0.5, -300, 0.5, -200}, 
         Minimized = false, 
@@ -546,15 +547,13 @@ function Leaf:CreateWindow(options, size, accentColor, tabs)
     }
     
     -- Load saved configuration (with executor compatibility check)
-    local useFileSystem = pcall(function()
-        return isfile and readfile and writefile
-    end)
+    local useFileSystem = pcall(function() return isfile and readfile and writefile end) and isfile and readfile
     
-    if useFileSystem and isfile(self.ConfigPath) then
-        local raw = readfile(self.ConfigPath)
-        if raw then
-            local ok, dec = pcall(HttpService.JSONDecode, HttpService, raw)
-            if ok and type(dec) == "table" then
+    if useFileSystem then
+        local ok, raw = pcall(readfile, self.ConfigPath)
+        if ok and raw then
+            local ok2, dec = pcall(HttpService.JSONDecode, HttpService, raw)
+            if ok2 and type(dec) == "table" then
                 for k,v in pairs(dec) do self.State[k] = v end
             end
         end
