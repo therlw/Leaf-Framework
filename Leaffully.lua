@@ -1876,10 +1876,12 @@ end)
     -- Optional: auto-create tabs passed to CreateWindow
     -- Accept formats: { {"Main", 6031265977}, {name="Settings", icon=6031280882, activeIcon=..., inactiveIcon=...} }
     if tabs and type(tabs) == "table" then
+        print("[LeafUI] Tab oluşturuluyor, count: " .. #tabs)
         for _, def in ipairs(tabs) do
             local name = (type(def) == "table" and (def.name or def[1])) or tostring(def)
             local icon = (type(def) == "table" and (def.icon or def[2])) or nil
             local opts = (type(def) == "table" and def) or {}
+            print("[LeafUI] Tab: " .. tostring(name) .. " | Icon: " .. tostring(icon))
             if name then
                 self:CreateTab(name, icon, {
                     activeIcon = opts.activeIcon,
