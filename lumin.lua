@@ -1,10 +1,10 @@
 --[[
-    RLWSCRIPTS PREMIUM LIBRARY v2.2 (Structure Fix & Polish)
+    RLWSCRIPTS PREMIUM LIBRARY v2.3 (Shadow Removed & Perfect Corners)
     Design: React/Tailwind Port (1:1 Replica)
     Author: RLW System
 ]]
 
-print("[RLW LIB] Initializing Library v2.2...")
+print("[RLW LIB] Initializing Library v2.3...")
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -134,39 +134,15 @@ function Library:Window(options)
     local UIVisible = true
     local CurrentTabName = nil
 
-    -- Canvas Container (Holds Shadow + Main)
-    -- This fixes the issue where ClipsDescendants on Main would cut off the shadow
-    local MainCanvas = Create("Frame", {
+    -- Main Frame (Directly on GUI, no Canvas/Shadow wrapper)
+    local Main = Create("Frame", {
         Parent = GUI,
-        Name = "MainCanvas",
-        BackgroundTransparency = 1,
+        Name = "Main",
+        BackgroundColor3 = Config.Colors.Background,
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         Size = UDim2.new(0, 750, 0, 500),
-        ZIndex = 1
-    })
-
-    -- Shadow (Behind Main)
-    local Shadow = Create("ImageLabel", {
-        Parent = MainCanvas,
-        BackgroundTransparency = 1,
-        Image = "rbxassetid://5554236805",
-        ImageColor3 = Color3.new(0,0,0),
-        ImageTransparency = 0.5, -- Softer shadow
-        Position = UDim2.new(0, -40, 0, -40),
-        Size = UDim2.new(1, 80, 1, 80),
-        ZIndex = 0,
-        ScaleType = Enum.ScaleType.Slice,
-        SliceCenter = Rect.new(23,23,277,277)
-    })
-
-    -- Main UI Frame
-    local Main = Create("Frame", {
-        Parent = MainCanvas,
-        Name = "MainFrame",
-        BackgroundColor3 = Config.Colors.Background,
-        Size = UDim2.new(1, 0, 1, 0),
-        ClipsDescendants = true, -- Now we can clip the corners properly!
+        ClipsDescendants = true, -- Clips bottom corners mostly
         ZIndex = 1
     })
     Create("UICorner", {Parent = Main, CornerRadius = UDim.new(0, 16)})
@@ -178,12 +154,24 @@ function Library:Window(options)
         Name = "Header",
         BackgroundColor3 = Config.Colors.Surface,
         Size = UDim2.new(1, 0, 0, 54),
+        BorderSizePixel = 0,
         ZIndex = 2
     })
-    -- Header doesn't need corners at bottom, only top. 
-    -- But since Main clips descendants, we can just make Header square at bottom and it will look round at top.
+    -- Header Corner Logic: 
+    -- 1. Apply UICorner to round ALL corners of the header.
+    -- 2. Add a Filler Frame at the bottom half to make the bottom corners square again (connecting to body).
+    Create("UICorner", {Parent = Header, CornerRadius = UDim.new(0, 16)})
     
-    Create("Frame", { -- Divider
+    local HeaderFiller = Create("Frame", {
+        Parent = Header,
+        BackgroundColor3 = Config.Colors.Surface,
+        BorderSizePixel = 0,
+        Size = UDim2.new(1, 0, 0.5, 0), -- Covers bottom half
+        Position = UDim2.new(0, 0, 0.5, 0),
+        ZIndex = 2
+    })
+
+    Create("Frame", { -- Divider Line
         Parent = Header,
         BackgroundColor3 = Config.Colors.Border,
         Size = UDim2.new(1, 0, 0, 1),
@@ -192,8 +180,7 @@ function Library:Window(options)
         ZIndex = 3
     })
 
-    -- Drag Logic (Move MainCanvas instead of Header)
-    MakeDraggable(Header, MainCanvas)
+    MakeDraggable(Header, Main)
 
     -- Toggle Key Listener
     UserInputService.InputBegan:Connect(function(input, gpe)
@@ -208,7 +195,8 @@ function Library:Window(options)
         Parent = Header,
         BackgroundTransparency = 1,
         Size = UDim2.new(0, 200, 1, 0),
-        Position = UDim2.new(0, 20, 0, 0)
+        Position = UDim2.new(0, 20, 0, 0),
+        ZIndex = 5
     })
 
     local LogoBox = Create("Frame", {
@@ -251,7 +239,8 @@ function Library:Window(options)
         BackgroundTransparency = 1,
         Position = UDim2.new(0, 44, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
-        Size = UDim2.new(0, 100, 0, 32)
+        Size = UDim2.new(0, 100, 0, 32),
+        ZIndex = 5
     })
     
     Create("TextLabel", {
@@ -285,7 +274,8 @@ function Library:Window(options)
         BackgroundTransparency = 1,
         Size = UDim2.new(0, 200, 1, 0),
         Position = UDim2.new(1, -20, 0, 0),
-        AnchorPoint = Vector2.new(1, 0)
+        AnchorPoint = Vector2.new(1, 0),
+        ZIndex = 5
     })
     Create("UIListLayout", {
         Parent = Actions,
@@ -622,21 +612,15 @@ function Library:Window(options)
             Rotation = 0
         })
 
-        -- Active Indicator (Fixed: Clean vertical line on left)
+        -- Active Indicator (Fixed: Clean 4px solid vertical line)
         local ActiveIndicator = Create("Frame", {
             Parent = Btn,
             BackgroundColor3 = Config.Colors.Primary,
-            Size = UDim2.new(0, 3, 1, 0), -- 3px wide, full height
+            Size = UDim2.new(0, 4, 1, 0), -- 4px wide, full height
             Position = UDim2.new(0, 0, 0, 0),
             BackgroundTransparency = 1,
+            BorderSizePixel = 0,
             ZIndex = 9
-        })
-        
-        -- Subtle Gradient on Indicator to make it look "premium"
-        Create("UIGradient", {
-            Parent = ActiveIndicator,
-            Color = ColorSequence.new(Config.Colors.Primary, Config.Colors.PrimaryDark),
-            Rotation = 90
         })
 
         local TabIcon = Create("ImageLabel", {
