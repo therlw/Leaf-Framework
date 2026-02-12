@@ -518,16 +518,29 @@ function Leaf:CreateWindow(options, size, accentColor, tabs)
     -- Handle both old style (title, size, color, tabs) and new style (options table)
     local title
     local customUsername = nil
+    
+    print("[LeafUI DEBUG] options type: " .. type(options))
+    print("[LeafUI DEBUG] options value: " .. tostring(options))
+    
     if type(options) == "table" then
         -- New style: options is a table
+        print("[LeafUI DEBUG] Table detected!")
         title = tostring(options.title) or "Leaf UI"
         size = options.size or UDim2.new(0, 650, 0, 450)
         accentColor = options.accentColor or Color3.fromRGB(0, 194, 255)
-        tabs = options.tabs  -- nil kalabilir, CreateTab bölümünde kontrol edilecek
-        customUsername = options.username  -- Custom username from options
+        tabs = options.tabs
+        customUsername = options.username
+        
+        print("[LeafUI DEBUG] options.title: " .. tostring(options.title))
+        print("[LeafUI DEBUG] options.tabs: " .. tostring(options.tabs))
+        print("[LeafUI DEBUG] type(options.tabs): " .. tostring(type(options.tabs)))
+        if type(options.tabs) == "table" then
+            print("[LeafUI DEBUG] #options.tabs: " .. #options.tabs)
+        end
     else
         -- Old style: options is the title string
         title = tostring(options) or "Leaf UI"
+        print("[LeafUI DEBUG] String detected (old style)")
     end
     
     -- Set custom username in NavConfig if provided
