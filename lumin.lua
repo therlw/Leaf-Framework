@@ -1,10 +1,10 @@
 --[[
-    RLWSCRIPTS PREMIUM LIBRARY v2.1 (Fixed Padding)
+    RLWSCRIPTS PREMIUM LIBRARY v2.2 (Structure Fix & Polish)
     Design: React/Tailwind Port (1:1 Replica)
     Author: RLW System
 ]]
 
-print("[RLW LIB] Initializing Library v2.1...")
+print("[RLW LIB] Initializing Library v2.2...")
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -134,33 +134,43 @@ function Library:Window(options)
     local UIVisible = true
     local CurrentTabName = nil
 
-    -- Main Frame
-    local Main = Create("Frame", {
+    -- Canvas Container (Holds Shadow + Main)
+    -- This fixes the issue where ClipsDescendants on Main would cut off the shadow
+    local MainCanvas = Create("Frame", {
         Parent = GUI,
-        Name = "Main",
-        BackgroundColor3 = Config.Colors.Background,
+        Name = "MainCanvas",
+        BackgroundTransparency = 1,
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         Size = UDim2.new(0, 750, 0, 500),
-        ClipsDescendants = false,
         ZIndex = 1
     })
-    Create("UICorner", {Parent = Main, CornerRadius = UDim.new(0, 16)}) -- More rounded
-    Create("UIStroke", {Parent = Main, Color = Config.Colors.Border, Thickness = 1})
 
-    -- Shadow
+    -- Shadow (Behind Main)
     local Shadow = Create("ImageLabel", {
-        Parent = Main,
+        Parent = MainCanvas,
         BackgroundTransparency = 1,
         Image = "rbxassetid://5554236805",
         ImageColor3 = Color3.new(0,0,0),
-        ImageTransparency = 0.4,
+        ImageTransparency = 0.5, -- Softer shadow
         Position = UDim2.new(0, -40, 0, -40),
         Size = UDim2.new(1, 80, 1, 80),
         ZIndex = 0,
         ScaleType = Enum.ScaleType.Slice,
         SliceCenter = Rect.new(23,23,277,277)
     })
+
+    -- Main UI Frame
+    local Main = Create("Frame", {
+        Parent = MainCanvas,
+        Name = "MainFrame",
+        BackgroundColor3 = Config.Colors.Background,
+        Size = UDim2.new(1, 0, 1, 0),
+        ClipsDescendants = true, -- Now we can clip the corners properly!
+        ZIndex = 1
+    })
+    Create("UICorner", {Parent = Main, CornerRadius = UDim.new(0, 16)})
+    Create("UIStroke", {Parent = Main, Color = Config.Colors.Border, Thickness = 1})
 
     -- Header
     local Header = Create("Frame", {
@@ -170,15 +180,9 @@ function Library:Window(options)
         Size = UDim2.new(1, 0, 0, 54),
         ZIndex = 2
     })
-    Create("UICorner", {Parent = Header, CornerRadius = UDim.new(0, 16)})
-    Create("Frame", { -- Fix bottom corners of header
-        Parent = Header,
-        BackgroundColor3 = Config.Colors.Surface,
-        Size = UDim2.new(1, 0, 0, 10),
-        Position = UDim2.new(0, 0, 1, -10),
-        BorderSizePixel = 0,
-        ZIndex = 2
-    })
+    -- Header doesn't need corners at bottom, only top. 
+    -- But since Main clips descendants, we can just make Header square at bottom and it will look round at top.
+    
     Create("Frame", { -- Divider
         Parent = Header,
         BackgroundColor3 = Config.Colors.Border,
@@ -188,7 +192,8 @@ function Library:Window(options)
         ZIndex = 3
     })
 
-    MakeDraggable(Header, Main)
+    -- Drag Logic (Move MainCanvas instead of Header)
+    MakeDraggable(Header, MainCanvas)
 
     -- Toggle Key Listener
     UserInputService.InputBegan:Connect(function(input, gpe)
@@ -198,12 +203,12 @@ function Library:Window(options)
         end
     end)
 
-    -- Logo
+    -- Logo Area
     local LogoContainer = Create("Frame", {
         Parent = Header,
         BackgroundTransparency = 1,
         Size = UDim2.new(0, 200, 1, 0),
-        Position = UDim2.new(0, 16, 0, 0)
+        Position = UDim2.new(0, 20, 0, 0)
     })
 
     local LogoBox = Create("Frame", {
@@ -216,23 +221,24 @@ function Library:Window(options)
     })
     Create("UICorner", {Parent = LogoBox, CornerRadius = UDim.new(0, 8)})
     Create("UIGradient", {Parent = LogoBox, Color = ColorSequence.new(Config.Colors.Primary, Config.Colors.PrimaryDark), Rotation = 45})
+    
     -- Logo Glow
-    local LogoGlow = Create("ImageLabel", {
+    Create("ImageLabel", {
         Parent = LogoBox,
         BackgroundTransparency = 1,
-        Image = "rbxassetid://5028857472", -- Soft Glow
+        Image = "rbxassetid://5028857472",
         ImageColor3 = Config.Colors.Primary,
         Size = UDim2.new(2, 0, 2, 0),
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
-        ImageTransparency = 0.5,
+        ImageTransparency = 0.6,
         ZIndex = 4
     })
     
     Create("ImageLabel", {
         Parent = LogoBox,
         BackgroundTransparency = 1,
-        Image = "rbxassetid://3944693858", -- Terminal Icon
+        Image = "rbxassetid://3944693858",
         Size = UDim2.new(0, 18, 0, 18),
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
@@ -243,7 +249,7 @@ function Library:Window(options)
     local TitleFrame = Create("Frame", {
         Parent = LogoContainer,
         BackgroundTransparency = 1,
-        Position = UDim2.new(0, 42, 0.5, 0),
+        Position = UDim2.new(0, 44, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
         Size = UDim2.new(0, 100, 0, 32)
     })
@@ -253,10 +259,10 @@ function Library:Window(options)
         BackgroundTransparency = 1,
         Text = options.Name or "RLWSCRIPTS",
         TextColor3 = Config.Colors.Text,
-        Font = Config.BoldFont, -- Bold
-        TextSize = 16,
-        Position = UDim2.new(0, 0, 0, 0),
-        Size = UDim2.new(1, 0, 0.6, 0),
+        Font = Config.BoldFont,
+        TextSize = 15,
+        Position = UDim2.new(0, 0, 0, 2),
+        Size = UDim2.new(1, 0, 0.5, 0),
         TextXAlignment = Enum.TextXAlignment.Left,
         ZIndex = 5
     })
@@ -267,18 +273,18 @@ function Library:Window(options)
         TextColor3 = Config.Colors.Muted,
         Font = Enum.Font.Code,
         TextSize = 10,
-        Position = UDim2.new(0, 0, 0.6, 0),
-        Size = UDim2.new(1, 0, 0.4, 0),
+        Position = UDim2.new(0, 0, 0.5, 2),
+        Size = UDim2.new(1, 0, 0.5, 0),
         TextXAlignment = Enum.TextXAlignment.Left,
         ZIndex = 5
     })
 
-    -- Header Actions (Close & Status)
+    -- Header Actions
     local Actions = Create("Frame", {
         Parent = Header,
         BackgroundTransparency = 1,
         Size = UDim2.new(0, 200, 1, 0),
-        Position = UDim2.new(1, -16, 0, 0),
+        Position = UDim2.new(1, -20, 0, 0),
         AnchorPoint = Vector2.new(1, 0)
     })
     Create("UIListLayout", {
@@ -301,9 +307,9 @@ function Library:Window(options)
     local CloseIcon = Create("ImageLabel", {
         Parent = CloseBtn,
         BackgroundTransparency = 1,
-        Image = "rbxassetid://6031094678", -- X icon
+        Image = "rbxassetid://6031094678",
         ImageColor3 = Config.Colors.Muted,
-        Size = UDim2.new(0, 20, 0, 20),
+        Size = UDim2.new(0, 18, 0, 18),
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         ZIndex = 6
@@ -312,16 +318,16 @@ function Library:Window(options)
     CloseBtn.MouseLeave:Connect(function() Tween(CloseIcon, {ImageColor3 = Config.Colors.Muted}) end)
     CloseBtn.MouseButton1Click:Connect(function() GUI:Destroy() end)
 
-    -- Updated Badge (Inject Replacement)
+    -- Status Badge
     local StatusBadge = Create("Frame", {
         Parent = Actions,
-        BackgroundColor3 = Color3.fromRGB(39, 39, 42), -- Zinc 800
-        Size = UDim2.new(0, 0, 0, 22), -- Auto width
+        BackgroundColor3 = Config.Colors.SurfaceHighlight,
+        Size = UDim2.new(0, 0, 0, 24),
         LayoutOrder = 1,
         ZIndex = 5
     })
     Create("UICorner", {Parent = StatusBadge, CornerRadius = UDim.new(0, 6)})
-    Create("UIStroke", {Parent = StatusBadge, Color = Color3.fromRGB(63, 63, 70), Thickness = 1})
+    Create("UIStroke", {Parent = StatusBadge, Color = Config.Colors.Border, Thickness = 1})
     
     local StatusLayout = Create("UIListLayout", {
         Parent = StatusBadge,
@@ -339,17 +345,16 @@ function Library:Window(options)
     })
     Create("UICorner", {Parent = PulseDot, CornerRadius = UDim.new(1, 0)})
     
-    -- Pulse Animation
     spawn(function()
         while PulseDot.Parent do
-            Tween(PulseDot, {BackgroundTransparency = 0.5}, 0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+            Tween(PulseDot, {BackgroundTransparency = 0.6}, 0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
             wait(0.8)
             Tween(PulseDot, {BackgroundTransparency = 0}, 0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
             wait(0.8)
         end
     end)
 
-    local StatusText = Create("TextLabel", {
+    Create("TextLabel", {
         Parent = StatusBadge,
         BackgroundTransparency = 1,
         Text = options.Updated or "Updated: 2 days ago",
@@ -359,21 +364,18 @@ function Library:Window(options)
         AutomaticSize = Enum.AutomaticSize.X,
         Size = UDim2.new(0, 0, 1, 0)
     })
-    
-    -- Update Badge Size based on text
     StatusBadge.AutomaticSize = Enum.AutomaticSize.X
 
-
-    -- Content Layout
+    -- Sidebar
     local Sidebar = Create("Frame", {
         Parent = Main,
-        BackgroundColor3 = Color3.fromRGB(17, 17, 20), -- Slightly Lighter than bg
-        Size = UDim2.new(0, 190, 1, -54),
+        BackgroundColor3 = Color3.fromRGB(17, 17, 20),
+        Size = UDim2.new(0, 200, 1, -54),
         Position = UDim2.new(0, 0, 0, 54),
         BorderSizePixel = 0,
         ZIndex = 5
     })
-    Create("Frame", { -- Sidebar Border Right
+    Create("Frame", {
         Parent = Sidebar,
         BackgroundColor3 = Config.Colors.Border,
         Size = UDim2.new(0, 1, 1, 0),
@@ -382,25 +384,26 @@ function Library:Window(options)
         ZIndex = 6
     })
 
+    -- Content Area
     local Content = Create("Frame", {
         Parent = Main,
         BackgroundColor3 = Config.Colors.Background,
-        Size = UDim2.new(1, -190, 1, -54),
-        Position = UDim2.new(0, 190, 0, 54),
+        Size = UDim2.new(1, -200, 1, -54),
+        Position = UDim2.new(0, 200, 0, 54),
         BorderSizePixel = 0,
         ClipsDescendants = true,
         ZIndex = 1
     })
 
-    -- Background Decoration (Glow inside Content)
-    local ContentGlow = Create("ImageLabel", {
+    -- Background Decoration
+    Create("ImageLabel", {
         Parent = Content,
         BackgroundTransparency = 1,
         Image = "rbxassetid://13126786847",
         ImageColor3 = Config.Colors.Primary,
-        ImageTransparency = 0.95,
-        Size = UDim2.new(0, 500, 0, 500),
-        Position = UDim2.new(1, 50, 0, -50),
+        ImageTransparency = 0.94,
+        Size = UDim2.new(0, 600, 0, 600),
+        Position = UDim2.new(1, 0, 0, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         ZIndex = 0
     })
@@ -408,7 +411,7 @@ function Library:Window(options)
     local TabContainer = Create("ScrollingFrame", {
         Parent = Sidebar,
         BackgroundTransparency = 1,
-        Size = UDim2.new(1, 0, 1, -64),
+        Size = UDim2.new(1, 0, 1, -70), -- Space for user profile
         CanvasSize = UDim2.new(0, 0, 0, 0),
         ScrollBarThickness = 0,
         ZIndex = 6
@@ -416,7 +419,7 @@ function Library:Window(options)
     
     local TabList = Create("UIListLayout", {
         Parent = TabContainer,
-        Padding = UDim.new(0, 2), -- Tighter padding like React
+        Padding = UDim.new(0, 4),
         SortOrder = Enum.SortOrder.LayoutOrder
     })
     
@@ -424,19 +427,18 @@ function Library:Window(options)
         TabContainer.CanvasSize = UDim2.new(0, 0, 0, TabList.AbsoluteContentSize.Y + 20)
     end)
     
-    Create("UIPadding", {Parent = TabContainer, PaddingTop = UDim.new(0, 12)})
+    Create("UIPadding", {Parent = TabContainer, PaddingTop = UDim.new(0, 16)})
 
-    -- User Info (Bottom Sidebar)
+    -- User Profile
     local UserContainer = Create("Frame", {
         Parent = Sidebar,
         BackgroundTransparency = 1,
-        Size = UDim2.new(1, 0, 0, 64),
+        Size = UDim2.new(1, 0, 0, 70),
         Position = UDim2.new(0, 0, 1, 0),
         AnchorPoint = Vector2.new(0, 1),
         ZIndex = 6
     })
     
-    -- FIXED PADDING: Removed PaddingAll, added individual paddings
     Create("UIPadding", {
         Parent = UserContainer, 
         PaddingTop = UDim.new(0, 16),
@@ -447,14 +449,13 @@ function Library:Window(options)
 
     local UserPanel = Create("Frame", {
         Parent = UserContainer,
-        BackgroundColor3 = Color3.fromRGB(24, 24, 27),
+        BackgroundColor3 = Config.Colors.Surface,
         Size = UDim2.new(1, 0, 1, 0),
         ZIndex = 7
     })
     Create("UICorner", {Parent = UserPanel, CornerRadius = UDim.new(0, 8)})
     Create("UIStroke", {Parent = UserPanel, Color = Config.Colors.Border, Thickness = 1})
 
-    -- Safe user thumbnail fetch
     local success, headshot = pcall(function()
         return Players:GetUserThumbnailAsync(Players.LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
     end)
@@ -463,7 +464,7 @@ function Library:Window(options)
         Parent = UserPanel,
         BackgroundTransparency = 1,
         Size = UDim2.new(0, 24, 0, 24),
-        Position = UDim2.new(0, 8, 0.5, 0),
+        Position = UDim2.new(0, 10, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
         ZIndex = 8
     })
@@ -476,18 +477,15 @@ function Library:Window(options)
     })
     Create("UICorner", {Parent = UserImg, CornerRadius = UDim.new(1, 0)})
 
-    -- Truncated Username
-    local safeName = TruncateText(Players.LocalPlayer.Name, 12)
-    
-    local UserNameObj = Create("TextLabel", {
+    Create("TextLabel", {
         Parent = UserPanel,
         BackgroundTransparency = 1,
-        Text = safeName,
+        Text = TruncateText(Players.LocalPlayer.Name, 12),
         TextColor3 = Config.Colors.Text,
-        Font = Config.BoldFont, -- Bold User Name
-        TextSize = 11,
-        Position = UDim2.new(0, 40, 0, 6),
-        Size = UDim2.new(1, -44, 0, 10),
+        Font = Config.BoldFont,
+        TextSize = 12,
+        Position = UDim2.new(0, 42, 0, 6),
+        Size = UDim2.new(1, -44, 0, 12),
         TextXAlignment = Enum.TextXAlignment.Left,
         ZIndex = 8
     })
@@ -496,16 +494,15 @@ function Library:Window(options)
         BackgroundTransparency = 1,
         Text = "Lifetime",
         TextColor3 = Config.Colors.Primary,
-        Font = Config.Font, -- Thin Label
-        TextSize = 9,
-        Position = UDim2.new(0, 40, 0, 18),
-        Size = UDim2.new(1, -44, 0, 10),
+        Font = Config.Font,
+        TextSize = 10,
+        Position = UDim2.new(0, 42, 0, 20),
+        Size = UDim2.new(1, -44, 0, 12),
         TextXAlignment = Enum.TextXAlignment.Left,
         ZIndex = 8
     })
 
-
-    -- Notification System (Existing)
+    -- Notification System
     local NotifyList = Create("Frame", {
         Parent = GUI,
         BackgroundTransparency = 1,
@@ -595,12 +592,12 @@ function Library:Window(options)
         TabCount = TabCount + 1
         local Tab = {}
         
-        -- Tab Button Container
+        -- Tab Button
         local Btn = Create("TextButton", {
             Name = name .. "_Tab",
             Parent = TabContainer,
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 42), -- Slightly taller
+            Size = UDim2.new(1, 0, 0, 46),
             Text = "",
             AutoButtonColor = false,
             LayoutOrder = TabCount,
@@ -610,7 +607,7 @@ function Library:Window(options)
         -- Hover Background
         local Hover = Create("Frame", {
             Parent = Btn,
-            BackgroundColor3 = Config.Colors.Primary,
+            BackgroundColor3 = Config.Colors.Text,
             BackgroundTransparency = 1, -- Invisible by default
             Size = UDim2.new(1, 0, 1, 0),
             ZIndex = 7
@@ -619,33 +616,27 @@ function Library:Window(options)
             Parent = Hover,
             Color = ColorSequence.new(Config.Colors.Primary, Config.Colors.Primary),
             Transparency = NumberSequence.new({
-                NumberSequenceKeypoint.new(0, 0.9),
+                NumberSequenceKeypoint.new(0, 0.95),
                 NumberSequenceKeypoint.new(1, 1)
             }),
             Rotation = 0
         })
 
-        -- Active Indicator (The "Massive Shadow" / Glow Bar)
+        -- Active Indicator (Fixed: Clean vertical line on left)
         local ActiveIndicator = Create("Frame", {
             Parent = Btn,
             BackgroundColor3 = Config.Colors.Primary,
-            Size = UDim2.new(0, 2, 1, 0),
+            Size = UDim2.new(0, 3, 1, 0), -- 3px wide, full height
             Position = UDim2.new(0, 0, 0, 0),
-            BackgroundTransparency = 1, -- Hidden by default
-            ZIndex = 8
+            BackgroundTransparency = 1,
+            ZIndex = 9
         })
         
-        -- The Glow Effect behind the indicator
-        local IndicatorGlow = Create("ImageLabel", {
+        -- Subtle Gradient on Indicator to make it look "premium"
+        Create("UIGradient", {
             Parent = ActiveIndicator,
-            BackgroundTransparency = 1,
-            Image = "rbxassetid://5028857472", -- Soft Glow Texture
-            ImageColor3 = Config.Colors.Primary,
-            Size = UDim2.new(8, 0, 1.5, 0), -- Wide glow
-            Position = UDim2.new(0, 0, 0.5, 0),
-            AnchorPoint = Vector2.new(0, 0.5),
-            ImageTransparency = 0.2,
-            ZIndex = 7
+            Color = ColorSequence.new(Config.Colors.Primary, Config.Colors.PrimaryDark),
+            Rotation = 90
         })
 
         local TabIcon = Create("ImageLabel", {
@@ -653,8 +644,8 @@ function Library:Window(options)
             BackgroundTransparency = 1,
             Image = icon or "rbxassetid://4483345998",
             ImageColor3 = Config.Colors.Muted,
-            Size = UDim2.new(0, 18, 0, 18),
-            Position = UDim2.new(0, 20, 0.5, 0),
+            Size = UDim2.new(0, 20, 0, 20),
+            Position = UDim2.new(0, 24, 0.5, 0),
             AnchorPoint = Vector2.new(0, 0.5),
             ZIndex = 8
         })
@@ -664,18 +655,18 @@ function Library:Window(options)
             BackgroundTransparency = 1,
             Text = name,
             TextColor3 = Config.Colors.Muted,
-            Font = Config.Font, -- Regular font when inactive
-            TextSize = 13,
-            Position = UDim2.new(0, 52, 0.5, 0),
+            Font = Config.Font,
+            TextSize = 14,
+            Position = UDim2.new(0, 56, 0.5, 0),
             AnchorPoint = Vector2.new(0, 0.5),
             TextXAlignment = Enum.TextXAlignment.Left,
             ZIndex = 8
         })
         
-        -- Hover Events
+        -- Hover Events (Smooth Animation)
         Btn.MouseEnter:Connect(function()
             if CurrentTabName ~= name then
-                Tween(Hover, {BackgroundTransparency = 0.95}, 0.2)
+                Tween(Hover, {BackgroundTransparency = 0.96}, 0.2) -- Very subtle hover
                 Tween(TabText, {TextColor3 = Config.Colors.Text}, 0.2)
                 Tween(TabIcon, {ImageColor3 = Config.Colors.Text}, 0.2)
             end
@@ -689,7 +680,7 @@ function Library:Window(options)
             end
         end)
 
-        -- Tab Content Page
+        -- Page
         local Page = Create("ScrollingFrame", {
             Parent = Content,
             BackgroundTransparency = 1,
@@ -703,7 +694,6 @@ function Library:Window(options)
         })
         Create("UIPadding", {Parent = Page, PaddingTop = UDim.new(0, 24), PaddingLeft = UDim.new(0, 24), PaddingRight = UDim.new(0, 24), PaddingBottom = UDim.new(0, 24)})
         
-        -- Layout (Left & Right columns)
         local LeftCol = Create("Frame", {
             Parent = Page,
             BackgroundTransparency = 1,
@@ -724,7 +714,6 @@ function Library:Window(options)
         local function Activate()
             CurrentTabName = name
             
-            -- Reset all tabs
             for _, t in pairs(Tabs) do
                 Tween(t.Icon, {ImageColor3 = Config.Colors.Muted}, 0.2)
                 Tween(t.Text, {TextColor3 = Config.Colors.Muted}, 0.2)
@@ -733,14 +722,12 @@ function Library:Window(options)
                 t.Page.Visible = false
             end
             
-            -- Activate current
             Tween(TabIcon, {ImageColor3 = Config.Colors.Primary}, 0.3)
             Tween(TabText, {TextColor3 = Config.Colors.Text}, 0.3)
             Tween(ActiveIndicator, {BackgroundTransparency = 0}, 0.3)
             Tween(Hover, {BackgroundTransparency = 0.9}, 0.3)
             Page.Visible = true
             
-            -- Animation
             Page.Position = UDim2.new(0, 10, 0, 0)
             Page.BackgroundTransparency = 1
             Tween(Page, {Position = UDim2.new(0,0,0,0), BackgroundTransparency = 1}, 0.3, Enum.EasingStyle.Quad)
@@ -757,7 +744,6 @@ function Library:Window(options)
             end)
         end
 
-        -- Section Handling
         local TabFunctions = {}
         local LeftCount, RightCount = 0, 0
 
@@ -772,8 +758,8 @@ function Library:Window(options)
 
             local SectionBox = Create("Frame", {
                 Parent = Parent,
-                BackgroundColor3 = Config.Colors.Surface, -- Surface
-                BackgroundTransparency = 0.5, -- Backdrop blur simulation
+                BackgroundColor3 = Config.Colors.Surface,
+                BackgroundTransparency = 0.5,
                 Size = UDim2.new(1, 0, 0, 0),
                 AutomaticSize = Enum.AutomaticSize.Y
             })
@@ -785,7 +771,7 @@ function Library:Window(options)
                 BackgroundTransparency = 1,
                 Text = title:upper(),
                 TextColor3 = Config.Colors.Muted,
-                Font = Config.BoldFont, -- Bold Section Title
+                Font = Config.BoldFont,
                 TextSize = 11,
                 Position = UDim2.new(0, 16, 0, 16),
                 TextXAlignment = Enum.TextXAlignment.Left
@@ -803,7 +789,6 @@ function Library:Window(options)
 
             local Elements = {}
 
-            -- TOGGLE
             function Elements:Toggle(name, default, callback)
                 local Toggled = default or false
                 local ToggleBtn = Create("TextButton", {
@@ -821,7 +806,7 @@ function Library:Window(options)
                     Parent = ToggleBtn,
                     BackgroundTransparency = 1,
                     Text = name,
-                    TextColor3 = Config.Colors.Text, -- Brighter text
+                    TextColor3 = Config.Colors.Text,
                     Font = Config.Font,
                     TextSize = 13,
                     Position = UDim2.new(0, 12, 0, 0),
@@ -855,7 +840,6 @@ function Library:Window(options)
                     Tween(Switch, {BackgroundColor3 = targetColor}, 0.2)
                     Tween(Dot, {Position = targetPos}, 0.3, Enum.EasingStyle.Back)
                     Tween(Stroke, {Color = targetStroke, Transparency = Toggled and 0.5 or 0}, 0.2)
-                    Tween(ToggleBtn, {BackgroundColor3 = Toggled and Config.Colors.SurfaceHighlight or Config.Colors.SurfaceHighlight}, 0.2)
                 end
 
                 ToggleBtn.MouseButton1Click:Connect(function()
@@ -866,7 +850,6 @@ function Library:Window(options)
                 if Toggled then Update() end
             end
 
-            -- SLIDER
             function Elements:Slider(name, min, max, default, callback)
                 local Value = default or min
                 local SliderFrame = Create("Frame", {
@@ -945,7 +928,6 @@ function Library:Window(options)
                 end)
             end
             
-            -- BUTTON
             function Elements:Button(name, callback)
                 local Btn = Create("TextButton", {
                     Parent = Container,
@@ -957,15 +939,6 @@ function Library:Window(options)
                 })
                 Create("UICorner", {Parent = Btn, CornerRadius = Config.CornerRadius})
                 
-                -- Shimmer Effect
-                local Shimmer = Create("Frame", {
-                    Parent = Btn,
-                    BackgroundColor3 = Color3.new(1,1,1),
-                    BackgroundTransparency = 0.9,
-                    Size = UDim2.new(0, 0, 1, 0),
-                    ZIndex = 2
-                })
-
                 Create("TextLabel", {
                     Parent = Btn,
                     BackgroundTransparency = 1,
@@ -989,7 +962,6 @@ function Library:Window(options)
                 end)
             end
 
-             -- TEXTBOX
             function Elements:Textbox(name, placeholder, callback)
                 local BoxFrame = Create("Frame", {
                     Parent = Container,
@@ -1039,7 +1011,6 @@ function Library:Window(options)
                 end)
             end
             
-             -- DROPDOWN (Simplified for length)
             function Elements:Dropdown(name, options, default, callback)
                 local IsOpen = false
                 local Selection = default or options[1]
