@@ -514,15 +514,29 @@ local NavConfig = {
 }
 
 -- Main Window Creation
-function Leaf:CreateWindow(title, size, accentColor, tabs)
+function Leaf:CreateWindow(options, size, accentColor, tabs)
+    -- Handle both old style (title, size, color, tabs) and new style (options table)
+    local title
+    if type(options) == "table" then
+        -- New style: options is a table
+        title = tostring(options.title) or "Leaf UI"
+        size = options.size or UDim2.new(0, 650, 0, 450)
+        accentColor = options.accentColor or Color3.fromRGB(0, 194, 255)
+        tabs = options.tabs or {"Home"}
+    else
+        -- Old style: options is the title string
+        title = tostring(options) or "Leaf UI"
+        -- size, accentColor, tabs remain as passed
+    end
+    
     local self = setmetatable({}, Leaf)
     self.Tabs = {}
     self.CurrentTab = nil
     self.Elements = {}
     self.Notifications = {}
-    -- Safely handle title
-    title = tostring(title) or "Leaf UI"
-    self.ConfigPath = "Leaf_"..(title:gsub("%s+",""))..".json"
+    
+    -- Safe config path
+    self.ConfigPath = "Leaf_"..title:gsub("%s+",""):gsub("[^%w_]","_")..".json"
     self.State = { 
         Position = {0.5, -300, 0.5, -200}, 
         Minimized = false, 
@@ -548,7 +562,7 @@ function Leaf:CreateWindow(title, size, accentColor, tabs)
     
     -- Create UI container
     local UI = Instance.new("ScreenGui")
-    UI.Name = "LeafUI_"..(tostring(title) or ""):gsub("%s+", "")
+    UI.Name = "LeafUI_"..title:gsub("%s+", ""):gsub("[^%w_]", "_")
     UI.ResetOnSpawn = false
     UI.ZIndexBehavior = Enum.ZIndexBehavior.Global
     UI.Parent = CoreGui
@@ -3594,8 +3608,8 @@ function LeafUI.Init()
     print("Leaf UI Ultimate Premium Edition Initialized")
 end
 
-function LeafUI.CreateWindow(title, size, accentColor, tabs)
-    return Leaf:CreateWindow(title, size, accentColor, tabs)
+function LeafUI.CreateWindow(options, size, accentColor, tabs)
+    return Leaf:CreateWindow(options, size, accentColor, tabs)
 end
 
 -- Content (right-side section) Config API ----------------------------------
