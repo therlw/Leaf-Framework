@@ -133,6 +133,11 @@ function Library:Window(options)
     local UIKey = options.Key or Enum.KeyCode.RightShift
     local UIVisible = true
     local CurrentTabName = nil
+    
+    -- Minimize Logic Variables
+    local IsMinimized = false
+    local RestoreBtn = nil
+    local OriginalSize = UDim2.new(0, 750, 0, 500)
 
     -- Main Frame (Directly on GUI, no Canvas/Shadow wrapper)
     local Main = Create("Frame", {
@@ -141,7 +146,7 @@ function Library:Window(options)
         BackgroundColor3 = Config.Colors.Background,
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
-        Size = UDim2.new(0, 750, 0, 500),
+        Size = OriginalSize,
         ClipsDescendants = true, -- Clips bottom corners mostly
         ZIndex = 1
     })
@@ -277,7 +282,7 @@ function Library:Window(options)
         BackgroundTransparency = 1,
         Text = "",
         Size = UDim2.new(0, 24, 0, 24),
-        LayoutOrder = 2,
+        LayoutOrder = 3, -- Changed to 3
         ZIndex = 5
     })
     local CloseIcon = Create("ImageLabel", {
@@ -293,6 +298,112 @@ function Library:Window(options)
     CloseBtn.MouseEnter:Connect(function() Tween(CloseIcon, {ImageColor3 = Config.Colors.Error}) end)
     CloseBtn.MouseLeave:Connect(function() Tween(CloseIcon, {ImageColor3 = Config.Colors.Muted}) end)
     CloseBtn.MouseButton1Click:Connect(function() GUI:Destroy() end)
+
+    -- Minimize Button
+    local MinimizeBtn = Create("TextButton", {
+        Parent = Actions,
+        BackgroundTransparency = 1,
+        Text = "",
+        Size = UDim2.new(0, 24, 0, 24),
+        LayoutOrder = 2, -- Between Status and Close
+        ZIndex = 5
+    })
+    local MinIcon = Create("ImageLabel", {
+        Parent = MinimizeBtn,
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://6031096991", -- Minus/Remove Icon
+        ImageColor3 = Config.Colors.Muted,
+        Size = UDim2.new(0, 18, 0, 18),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        ZIndex = 6
+    })
+    MinimizeBtn.MouseEnter:Connect(function() Tween(MinIcon, {ImageColor3 = Config.Colors.Text}) end)
+    MinimizeBtn.MouseLeave:Connect(function() Tween(MinIcon, {ImageColor3 = Config.Colors.Muted}) end)
+
+    -- Minimize Functionality
+    local function ToggleMinimize()
+        IsMinimized = not IsMinimized
+        
+        if IsMinimized then
+            -- Minimize Animation: Shrink to center
+            Tween(Main, {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1}, 0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+            
+            task.wait(0.35)
+            Main.Visible = false
+            
+            -- Create Restore Button
+            RestoreBtn = Create("TextButton", {
+                Parent = GUI,
+                BackgroundColor3 = Config.Colors.Surface,
+                Size = UDim2.new(0, 180, 0, 44),
+                Position = UDim2.new(0.5, 0, 0, -60), -- Start off-screen
+                AnchorPoint = Vector2.new(0.5, 0),
+                Text = "",
+                AutoButtonColor = false,
+                ZIndex = 200
+            })
+            Create("UICorner", {Parent = RestoreBtn, CornerRadius = UDim.new(0, 12)})
+            Create("UIStroke", {Parent = RestoreBtn, Color = Config.Colors.Primary, Thickness = 1.5, Transparency = 0.5})
+            
+            -- Glow/Shadow for Restore Button
+            Create("ImageLabel", {
+                Parent = RestoreBtn,
+                BackgroundTransparency = 1,
+                Image = "rbxassetid://5028857472",
+                ImageColor3 = Config.Colors.Primary,
+                ImageTransparency = 0.8,
+                Size = UDim2.new(1, 40, 1, 40),
+                Position = UDim2.new(0.5, 0, 0.5, 0),
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                ZIndex = 199
+            })
+
+            local RIcon = Create("ImageLabel", {
+                Parent = RestoreBtn,
+                BackgroundTransparency = 1,
+                Image = "rbxassetid://79185829747284",
+                Size = UDim2.new(0, 24, 0, 24),
+                Position = UDim2.new(0, 12, 0.5, 0),
+                AnchorPoint = Vector2.new(0, 0.5),
+                ZIndex = 201
+            })
+
+            Create("TextLabel", {
+                Parent = RestoreBtn,
+                BackgroundTransparency = 1,
+                Text = "Reopen Script!",
+                TextColor3 = Config.Colors.Text,
+                Font = Config.BoldFont,
+                TextSize = 14,
+                Position = UDim2.new(0, 44, 0, 0),
+                Size = UDim2.new(1, -50, 1, 0),
+                TextXAlignment = Enum.TextXAlignment.Left,
+                ZIndex = 201
+            })
+
+            -- Animate In (Slide down from top)
+            Tween(RestoreBtn, {Position = UDim2.new(0.5, 0, 0, 20)}, 0.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out)
+            
+            RestoreBtn.MouseButton1Click:Connect(function()
+                ToggleMinimize()
+            end)
+        else
+            -- Restore Animation
+            if RestoreBtn then
+                Tween(RestoreBtn, {Position = UDim2.new(0.5, 0, 0, -60)}, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+                task.wait(0.3)
+                RestoreBtn:Destroy()
+                RestoreBtn = nil
+            end
+            
+            Main.Visible = true
+            -- Expand back to original size
+            Tween(Main, {Size = OriginalSize, BackgroundTransparency = 0}, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        end
+    end
+
+    MinimizeBtn.MouseButton1Click:Connect(ToggleMinimize)
 
     -- Status Badge
     local StatusBadge = Create("Frame", {
