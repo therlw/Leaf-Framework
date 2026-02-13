@@ -1,11 +1,11 @@
 --[[
-    RLWSCRIPTS PREMIUM LIBRARY v2.9.5 (Smoother Hover Update)
+    RLWSCRIPTS PREMIUM LIBRARY v2.9.6 (Glow Toggle Update)
     Design: React/Tailwind Port (1:1 Replica)
-    Features: List Layout, Animated Dropdown, Smooth Animations
+    Features: List Layout, Animated Dropdown, Smooth Animations, Glow Effects
     Author: RLW System
 ]]
 
-print("[RLW LIB] Initializing Library v2.9.5...")
+print("[RLW LIB] Initializing Library v2.9.6...")
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -1052,22 +1052,39 @@ function Library:Window(options)
                     TextXAlignment = Enum.TextXAlignment.Left
                 })
 
+                -- Switch Track
                 local Switch = Create("Frame", {
                     Parent = ToggleBtn,
                     BackgroundColor3 = Config.Colors.Surface,
                     Size = UDim2.new(0, 36, 0, 20),
                     Position = UDim2.new(1, -12, 0.5, 0),
-                    AnchorPoint = Vector2.new(1, 0.5)
+                    AnchorPoint = Vector2.new(1, 0.5),
+                    ZIndex = 5
                 })
                 Create("UICorner", {Parent = Switch, CornerRadius = UDim.new(1, 0)})
                 local SwitchStroke = Create("UIStroke", {Parent = Switch, Color = Config.Colors.Border, Thickness = 1})
                 
+                -- Glow Effect (New)
+                local Glow = Create("ImageLabel", {
+                    Parent = ToggleBtn,
+                    BackgroundTransparency = 1,
+                    Image = "rbxassetid://6031063433",
+                    ImageColor3 = Config.Colors.Primary,
+                    ImageTransparency = 1,
+                    Size = UDim2.new(0, 46, 0, 30), -- 36+10, 20+10
+                    Position = UDim2.new(1, -12, 0.5, 0),
+                    AnchorPoint = Vector2.new(1, 0.5),
+                    ZIndex = 4
+                })
+
+                -- Switch Dot
                 local Dot = Create("Frame", {
                     Parent = Switch,
                     BackgroundColor3 = Config.Colors.Muted,
                     Size = UDim2.new(0, 16, 0, 16),
                     Position = UDim2.new(0, 2, 0.5, 0),
-                    AnchorPoint = Vector2.new(0, 0.5)
+                    AnchorPoint = Vector2.new(0, 0.5),
+                    ZIndex = 6
                 })
                 Create("UICorner", {Parent = Dot, CornerRadius = UDim.new(1, 0)})
 
@@ -1077,10 +1094,12 @@ function Library:Window(options)
                     local targetAnchor = Toggled and Vector2.new(1, 0.5) or Vector2.new(0, 0.5)
                     local targetDotColor = Toggled and Color3.new(1,1,1) or Config.Colors.Muted
                     local targetStroke = Toggled and Config.Colors.Primary or Config.Colors.Border
+                    local targetGlow = Toggled and 0.6 or 1 -- Glow transparency
                     
-                    Tween(Switch, {BackgroundColor3 = targetColor}, 0.2)
-                    Tween(Dot, {Position = targetPos, AnchorPoint = targetAnchor, BackgroundColor3 = targetDotColor}, 0.3, Enum.EasingStyle.Back)
-                    Tween(SwitchStroke, {Color = targetStroke}, 0.2)
+                    Tween(Switch, {BackgroundColor3 = targetColor}, 0.3)
+                    Tween(Dot, {Position = targetPos, AnchorPoint = targetAnchor, BackgroundColor3 = targetDotColor}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+                    Tween(SwitchStroke, {Color = targetStroke}, 0.3)
+                    Tween(Glow, {ImageTransparency = targetGlow}, 0.3)
                 end
 
                 ToggleBtn.MouseButton1Click:Connect(function()
