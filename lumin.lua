@@ -220,7 +220,7 @@ function Library:Window(options)
         Parent = LogoBox,
         BackgroundTransparency = 1,
         Image = "rbxassetid://79185829747284", -- Terminal Icon
-        Size = UDim2.new(0, 45, 0, 45),
+        Size = UDim2.new(0, 60, 0, 60),
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         ZIndex = 6
