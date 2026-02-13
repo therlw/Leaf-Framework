@@ -1,11 +1,11 @@
 --[[
-    RLWSCRIPTS PREMIUM LIBRARY v2.9.6 (Glow Toggle Update)
+    RLWSCRIPTS PREMIUM LIBRARY v2.9.7 (Paragraph Update)
     Design: React/Tailwind Port (1:1 Replica)
-    Features: List Layout, Animated Dropdown, Smooth Animations, Glow Effects
+    Features: List Layout, Animated Dropdown, Smooth Animations, Glow Effects, Paragraphs
     Author: RLW System
 ]]
 
-print("[RLW LIB] Initializing Library v2.9.6...")
+print("[RLW LIB] Initializing Library v2.9.7...")
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -1017,6 +1017,79 @@ function Library:Window(options)
             Create("UIPadding", {Parent = SectionBox, PaddingBottom = UDim.new(0, 8)})
 
             local Elements = {}
+
+            -- NEW FEATURE: Simple Text Label
+            function Elements:Label(text)
+                local LabelFrame = Create("Frame", {
+                    Parent = Container,
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 0, 26)
+                })
+
+                Create("TextLabel", {
+                    Parent = LabelFrame,
+                    BackgroundTransparency = 1,
+                    Text = text,
+                    TextColor3 = Config.Colors.Muted,
+                    Font = Config.Font,
+                    TextSize = 13,
+                    Position = UDim2.new(0, 12, 0, 0),
+                    Size = UDim2.new(1, -24, 1, 0),
+                    TextXAlignment = Enum.TextXAlignment.Left
+                })
+            end
+
+            -- NEW FEATURE: Info/Credits Card (Paragraph)
+            function Elements:Paragraph(title, content)
+                local ParaFrame = Create("Frame", {
+                    Parent = Container,
+                    BackgroundColor3 = Config.Colors.SurfaceHighlight,
+                    Size = UDim2.new(1, 0, 0, 0),
+                    AutomaticSize = Enum.AutomaticSize.Y
+                })
+                Create("UICorner", {Parent = ParaFrame, CornerRadius = UDim.new(0, 6)})
+                Create("UIStroke", {Parent = ParaFrame, Color = Config.Colors.Border, Thickness = 1})
+                
+                Create("UIPadding", {
+                    Parent = ParaFrame, 
+                    PaddingTop = UDim.new(0, 10), 
+                    PaddingBottom = UDim.new(0, 10), 
+                    PaddingLeft = UDim.new(0, 12), 
+                    PaddingRight = UDim.new(0, 12)
+                })
+                
+                Create("UIListLayout", {
+                    Parent = ParaFrame,
+                    SortOrder = Enum.SortOrder.LayoutOrder,
+                    Padding = UDim.new(0, 4)
+                })
+
+                Create("TextLabel", {
+                    Parent = ParaFrame,
+                    BackgroundTransparency = 1,
+                    Text = title,
+                    TextColor3 = Config.Colors.Text,
+                    Font = Config.BoldFont,
+                    TextSize = 13,
+                    Size = UDim2.new(1, 0, 0, 14),
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    LayoutOrder = 1
+                })
+
+                Create("TextLabel", {
+                    Parent = ParaFrame,
+                    BackgroundTransparency = 1,
+                    Text = content,
+                    TextColor3 = Config.Colors.Muted,
+                    Font = Config.Font,
+                    TextSize = 12,
+                    Size = UDim2.new(1, 0, 0, 0),
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextWrapped = true,
+                    LayoutOrder = 2
+                })
+            end
 
             function Elements:Toggle(name, default, callback)
                 local Toggled = default or false
