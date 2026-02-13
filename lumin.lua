@@ -1,10 +1,10 @@
 --[[
-    RLWSCRIPTS PREMIUM LIBRARY v2.7 (Icon Fixes)
+    RLWSCRIPTS PREMIUM LIBRARY v2.8 (List Layout Redesign)
     Design: React/Tailwind Port (1:1 Replica)
     Author: RLW System
 ]]
 
-print("[RLW LIB] Initializing Library v2.7...")
+print("[RLW LIB] Initializing Library v2.8...")
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -1002,19 +1002,19 @@ function Library:Window(options)
                 TextColor3 = Config.Colors.Muted,
                 Font = Config.BoldFont,
                 TextSize = 11,
-                Position = UDim2.new(0, 16, 0, 16),
+                Position = UDim2.new(0, 12, 0, 12),
                 TextXAlignment = Enum.TextXAlignment.Left
             })
 
             local Container = Create("Frame", {
                 Parent = SectionBox,
                 BackgroundTransparency = 1,
-                Position = UDim2.new(0, 16, 0, 40),
-                Size = UDim2.new(1, -32, 0, 0),
+                Position = UDim2.new(0, 0, 0, 32),
+                Size = UDim2.new(1, 0, 0, 0),
                 AutomaticSize = Enum.AutomaticSize.Y
             })
-            Create("UIListLayout", {Parent = Container, Padding = UDim.new(0, 10), SortOrder = Enum.SortOrder.LayoutOrder})
-            Create("UIPadding", {Parent = SectionBox, PaddingBottom = UDim.new(0, 16)})
+            Create("UIListLayout", {Parent = Container, Padding = UDim.new(0, 1), SortOrder = Enum.SortOrder.LayoutOrder})
+            Create("UIPadding", {Parent = SectionBox, PaddingBottom = UDim.new(0, 8)})
 
             local Elements = {}
 
@@ -1022,15 +1022,24 @@ function Library:Window(options)
                 local Toggled = default or false
                 local ToggleBtn = Create("TextButton", {
                     Parent = Container,
-                    BackgroundColor3 = Config.Colors.SurfaceHighlight,
-                    BackgroundTransparency = 0.7,
-                    Size = UDim2.new(1, 0, 0, 40),
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 0, 32), -- Compact Row Height
                     AutoButtonColor = false,
                     Text = ""
                 })
-                Create("UICorner", {Parent = ToggleBtn, CornerRadius = Config.CornerRadius})
-                local Stroke = Create("UIStroke", {Parent = ToggleBtn, Color = Config.Colors.Border, Thickness = 1})
                 
+                -- Hover Effect
+                local Hover = Create("Frame", {
+                    Parent = ToggleBtn,
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 1, 0),
+                    ZIndex = 0
+                })
+                
+                ToggleBtn.MouseEnter:Connect(function() Tween(Hover, {BackgroundTransparency = 0.97}, 0.2) end)
+                ToggleBtn.MouseLeave:Connect(function() Tween(Hover, {BackgroundTransparency = 1}, 0.2) end)
+
                 Create("TextLabel", {
                     Parent = ToggleBtn,
                     BackgroundTransparency = 1,
@@ -1039,36 +1048,39 @@ function Library:Window(options)
                     Font = Config.Font,
                     TextSize = 13,
                     Position = UDim2.new(0, 12, 0, 0),
-                    Size = UDim2.new(1, -50, 1, 0),
+                    Size = UDim2.new(1, -60, 1, 0),
                     TextXAlignment = Enum.TextXAlignment.Left
                 })
 
                 local Switch = Create("Frame", {
                     Parent = ToggleBtn,
                     BackgroundColor3 = Config.Colors.Surface,
-                    Size = UDim2.new(0, 40, 0, 22),
+                    Size = UDim2.new(0, 36, 0, 20),
                     Position = UDim2.new(1, -12, 0.5, 0),
                     AnchorPoint = Vector2.new(1, 0.5)
                 })
                 Create("UICorner", {Parent = Switch, CornerRadius = UDim.new(1, 0)})
+                local SwitchStroke = Create("UIStroke", {Parent = Switch, Color = Config.Colors.Border, Thickness = 1})
                 
                 local Dot = Create("Frame", {
                     Parent = Switch,
-                    BackgroundColor3 = Color3.new(1,1,1),
-                    Size = UDim2.new(0, 18, 0, 18),
+                    BackgroundColor3 = Config.Colors.Muted,
+                    Size = UDim2.new(0, 16, 0, 16),
                     Position = UDim2.new(0, 2, 0.5, 0),
                     AnchorPoint = Vector2.new(0, 0.5)
                 })
                 Create("UICorner", {Parent = Dot, CornerRadius = UDim.new(1, 0)})
 
                 local function Update()
-                    local targetColor = Toggled and Config.Colors.Primary or Config.Colors.SurfaceHighlight
-                    local targetPos = Toggled and UDim2.new(0, 20, 0.5, 0) or UDim2.new(0, 2, 0.5, 0)
+                    local targetColor = Toggled and Config.Colors.Primary or Config.Colors.Surface
+                    local targetPos = Toggled and UDim2.new(1, -2, 0.5, 0) or UDim2.new(0, 2, 0.5, 0)
+                    local targetAnchor = Toggled and Vector2.new(1, 0.5) or Vector2.new(0, 0.5)
+                    local targetDotColor = Toggled and Color3.new(1,1,1) or Config.Colors.Muted
                     local targetStroke = Toggled and Config.Colors.Primary or Config.Colors.Border
                     
                     Tween(Switch, {BackgroundColor3 = targetColor}, 0.2)
-                    Tween(Dot, {Position = targetPos}, 0.3, Enum.EasingStyle.Back)
-                    Tween(Stroke, {Color = targetStroke, Transparency = Toggled and 0.5 or 0}, 0.2)
+                    Tween(Dot, {Position = targetPos, AnchorPoint = targetAnchor, BackgroundColor3 = targetDotColor}, 0.3, Enum.EasingStyle.Back)
+                    Tween(SwitchStroke, {Color = targetStroke}, 0.2)
                 end
 
                 ToggleBtn.MouseButton1Click:Connect(function()
@@ -1083,12 +1095,20 @@ function Library:Window(options)
                 local Value = default or min
                 local SliderFrame = Create("Frame", {
                     Parent = Container,
-                    BackgroundColor3 = Config.Colors.SurfaceHighlight,
-                    BackgroundTransparency = 0.7,
-                    Size = UDim2.new(1, 0, 0, 54)
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 0, 48) -- Slightly taller for slider bar
                 })
-                Create("UICorner", {Parent = SliderFrame, CornerRadius = Config.CornerRadius})
-                Create("UIStroke", {Parent = SliderFrame, Color = Config.Colors.Border, Thickness = 1})
+
+                -- Hover Effect
+                local Hover = Create("Frame", {
+                    Parent = SliderFrame,
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 1, 0),
+                    ZIndex = 0
+                })
+                SliderFrame.MouseEnter:Connect(function() Tween(Hover, {BackgroundTransparency = 0.97}, 0.2) end)
+                SliderFrame.MouseLeave:Connect(function() Tween(Hover, {BackgroundTransparency = 1}, 0.2) end)
 
                 Create("TextLabel", {
                     Parent = SliderFrame,
@@ -1097,7 +1117,7 @@ function Library:Window(options)
                     TextColor3 = Config.Colors.Text,
                     Font = Config.Font,
                     TextSize = 13,
-                    Position = UDim2.new(0, 12, 0, 12),
+                    Position = UDim2.new(0, 12, 0, 8),
                     TextXAlignment = Enum.TextXAlignment.Left
                 })
 
@@ -1108,16 +1128,16 @@ function Library:Window(options)
                     TextColor3 = Config.Colors.Primary,
                     Font = Enum.Font.Code,
                     TextSize = 12,
-                    Position = UDim2.new(1, -12, 0, 12),
+                    Position = UDim2.new(1, -12, 0, 8),
                     AnchorPoint = Vector2.new(1, 0),
                     TextXAlignment = Enum.TextXAlignment.Right
                 })
 
                 local Bar = Create("Frame", {
                     Parent = SliderFrame,
-                    BackgroundColor3 = Config.Colors.Surface,
-                    Size = UDim2.new(1, -24, 0, 6),
-                    Position = UDim2.new(0, 12, 0, 36)
+                    BackgroundColor3 = Config.Colors.SurfaceHighlight,
+                    Size = UDim2.new(1, -24, 0, 4),
+                    Position = UDim2.new(0, 12, 0, 32)
                 })
                 Create("UICorner", {Parent = Bar, CornerRadius = UDim.new(1, 0)})
 
@@ -1158,21 +1178,30 @@ function Library:Window(options)
             end
             
             function Elements:Button(name, callback)
-                local Btn = Create("TextButton", {
+                local ContainerFrame = Create("Frame", {
                     Parent = Container,
-                    BackgroundColor3 = Config.Colors.Primary,
-                    Size = UDim2.new(1, 0, 0, 36),
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 0, 44)
+                })
+                
+                local Btn = Create("TextButton", {
+                    Parent = ContainerFrame,
+                    BackgroundColor3 = Config.Colors.SurfaceHighlight,
+                    Size = UDim2.new(1, -24, 0, 32),
+                    Position = UDim2.new(0, 12, 0.5, 0),
+                    AnchorPoint = Vector2.new(0, 0.5),
                     Text = "",
                     AutoButtonColor = false,
                     ClipsDescendants = true
                 })
-                Create("UICorner", {Parent = Btn, CornerRadius = Config.CornerRadius})
+                Create("UICorner", {Parent = Btn, CornerRadius = UDim.new(0, 6)})
+                Create("UIStroke", {Parent = Btn, Color = Config.Colors.Border, Thickness = 1})
                 
                 Create("TextLabel", {
                     Parent = Btn,
                     BackgroundTransparency = 1,
                     Text = name,
-                    TextColor3 = Color3.new(1,1,1),
+                    TextColor3 = Config.Colors.Text,
                     Font = Config.BoldFont,
                     TextSize = 13,
                     Size = UDim2.new(1, 0, 1, 0),
@@ -1180,10 +1209,10 @@ function Library:Window(options)
                 })
 
                 Btn.MouseEnter:Connect(function()
-                    Tween(Btn, {BackgroundColor3 = Config.Colors.PrimaryDark}, 0.2)
+                    Tween(Btn, {BackgroundColor3 = Config.Colors.Border}, 0.2)
                 end)
                 Btn.MouseLeave:Connect(function()
-                    Tween(Btn, {BackgroundColor3 = Config.Colors.Primary}, 0.2)
+                    Tween(Btn, {BackgroundColor3 = Config.Colors.SurfaceHighlight}, 0.2)
                 end)
                 Btn.MouseButton1Click:Connect(function()
                     Ripple(Btn)
@@ -1194,12 +1223,20 @@ function Library:Window(options)
             function Elements:Textbox(name, placeholder, callback)
                 local BoxFrame = Create("Frame", {
                     Parent = Container,
-                    BackgroundColor3 = Config.Colors.SurfaceHighlight,
-                    BackgroundTransparency = 0.7,
-                    Size = UDim2.new(1, 0, 0, 46)
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 0, 40)
                 })
-                Create("UICorner", {Parent = BoxFrame, CornerRadius = Config.CornerRadius})
-                local Stroke = Create("UIStroke", {Parent = BoxFrame, Color = Config.Colors.Border, Thickness = 1})
+
+                -- Hover Effect
+                local Hover = Create("Frame", {
+                    Parent = BoxFrame,
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 1, 0),
+                    ZIndex = 0
+                })
+                BoxFrame.MouseEnter:Connect(function() Tween(Hover, {BackgroundTransparency = 0.97}, 0.2) end)
+                BoxFrame.MouseLeave:Connect(function() Tween(Hover, {BackgroundTransparency = 1}, 0.2) end)
 
                 Create("TextLabel", {
                     Parent = BoxFrame,
@@ -1209,33 +1246,41 @@ function Library:Window(options)
                     Font = Config.Font,
                     TextSize = 13,
                     Position = UDim2.new(0, 12, 0, 0),
-                    Size = UDim2.new(1, -24, 0.5, 0),
+                    Size = UDim2.new(0.4, 0, 1, 0),
                     TextXAlignment = Enum.TextXAlignment.Left
                 })
 
-                local Input = Create("TextBox", {
+                local InputBg = Create("Frame", {
                     Parent = BoxFrame,
+                    BackgroundColor3 = Config.Colors.Background,
+                    Size = UDim2.new(0, 120, 0, 26),
+                    Position = UDim2.new(1, -12, 0.5, 0),
+                    AnchorPoint = Vector2.new(1, 0.5)
+                })
+                Create("UICorner", {Parent = InputBg, CornerRadius = UDim.new(0, 4)})
+                local Stroke = Create("UIStroke", {Parent = InputBg, Color = Config.Colors.Border, Thickness = 1})
+
+                local Input = Create("TextBox", {
+                    Parent = InputBg,
                     BackgroundTransparency = 1,
                     Text = "",
                     PlaceholderText = placeholder or "...",
-                    PlaceholderColor3 = Color3.fromRGB(100, 100, 100),
+                    PlaceholderColor3 = Config.Colors.Muted,
                     TextColor3 = Config.Colors.Text,
                     Font = Enum.Font.Code,
-                    TextSize = 12,
-                    Position = UDim2.new(0, 12, 0.5, 0),
-                    Size = UDim2.new(1, -24, 0.5, 0),
+                    TextSize = 11,
+                    Position = UDim2.new(0, 8, 0, 0),
+                    Size = UDim2.new(1, -16, 1, 0),
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ClearTextOnFocus = false
                 })
 
                 Input.Focused:Connect(function()
                     Tween(Stroke, {Color = Config.Colors.Primary}, 0.2)
-                    Tween(BoxFrame, {BackgroundTransparency = 0.5}, 0.2)
                 end)
                 
                 Input.FocusLost:Connect(function()
                     Tween(Stroke, {Color = Config.Colors.Border}, 0.2)
-                    Tween(BoxFrame, {BackgroundTransparency = 0.7}, 0.2)
                     callback(Input.Text)
                 end)
             end
@@ -1246,22 +1291,30 @@ function Library:Window(options)
                 
                 local DropFrame = Create("Frame", {
                     Parent = Container,
-                    BackgroundColor3 = Config.Colors.SurfaceHighlight,
-                    BackgroundTransparency = 0.7,
-                    Size = UDim2.new(1, 0, 0, 46),
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 0, 36), -- Default height
                     ClipsDescendants = true,
                     ZIndex = 20
                 })
-                Create("UICorner", {Parent = DropFrame, CornerRadius = Config.CornerRadius})
-                local Stroke = Create("UIStroke", {Parent = DropFrame, Color = Config.Colors.Border, Thickness = 1})
-
+                
                 local HeaderBtn = Create("TextButton", {
                     Parent = DropFrame,
                     BackgroundTransparency = 1,
-                    Size = UDim2.new(1, 0, 0, 46),
+                    Size = UDim2.new(1, 0, 0, 36),
                     Text = "",
                     ZIndex = 20
                 })
+                
+                 -- Hover Effect
+                local Hover = Create("Frame", {
+                    Parent = HeaderBtn,
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 1, 0),
+                    ZIndex = 0
+                })
+                HeaderBtn.MouseEnter:Connect(function() Tween(Hover, {BackgroundTransparency = 0.97}, 0.2) end)
+                HeaderBtn.MouseLeave:Connect(function() Tween(Hover, {BackgroundTransparency = 1}, 0.2) end)
 
                 Create("TextLabel", {
                     Parent = HeaderBtn,
@@ -1279,26 +1332,28 @@ function Library:Window(options)
                 local SelLabel = Create("TextLabel", {
                     Parent = HeaderBtn,
                     BackgroundTransparency = 1,
-                    Text = Selection,
+                    Text = Selection .. " ▼",
                     TextColor3 = Config.Colors.Primary,
                     Font = Config.Font,
                     TextSize = 13,
                     Position = UDim2.new(0, 12, 0, 0),
-                    Size = UDim2.new(1, -36, 1, 0),
+                    Size = UDim2.new(1, -24, 1, 0),
                     TextXAlignment = Enum.TextXAlignment.Right,
                     ZIndex = 20
                 })
 
                 local List = Create("ScrollingFrame", {
                     Parent = DropFrame,
-                    BackgroundTransparency = 1,
-                    Position = UDim2.new(0, 0, 0, 46),
-                    Size = UDim2.new(1, 0, 1, -46),
+                    BackgroundColor3 = Config.Colors.Background,
+                    Position = UDim2.new(0, 12, 0, 36),
+                    Size = UDim2.new(1, -24, 1, -40),
                     CanvasSize = UDim2.new(0,0,0,0),
                     ScrollBarThickness = 2,
                     AutomaticCanvasSize = Enum.AutomaticSize.Y,
                     ZIndex = 21
                 })
+                Create("UICorner", {Parent = List, CornerRadius = UDim.new(0, 6)})
+                Create("UIStroke", {Parent = List, Color = Config.Colors.Border, Thickness = 1})
                 Create("UIListLayout", {Parent = List, SortOrder = Enum.SortOrder.LayoutOrder})
 
                 local function RenderOptions()
@@ -1308,20 +1363,20 @@ function Library:Window(options)
                             Parent = List,
                             BackgroundColor3 = Config.Colors.Surface,
                             BackgroundTransparency = 0.2,
-                            Size = UDim2.new(1, 0, 0, 32),
+                            Size = UDim2.new(1, 0, 0, 28),
                             Text = "  " .. opt,
                             TextColor3 = opt == Selection and Config.Colors.Primary or Config.Colors.Muted,
                             Font = Config.Font,
-                            TextSize = 13,
+                            TextSize = 12,
                             TextXAlignment = Enum.TextXAlignment.Left,
                             ZIndex = 22
                         })
                         OptBtn.MouseButton1Click:Connect(function()
                             Selection = opt
-                            SelLabel.Text = Selection
+                            SelLabel.Text = Selection .. " ▼"
                             callback(Selection)
                             IsOpen = false
-                            Tween(DropFrame, {Size = UDim2.new(1, 0, 0, 46)}, 0.2)
+                            Tween(DropFrame, {Size = UDim2.new(1, 0, 0, 36)}, 0.2)
                             RenderOptions()
                         end)
                     end
@@ -1330,9 +1385,8 @@ function Library:Window(options)
 
                 HeaderBtn.MouseButton1Click:Connect(function()
                     IsOpen = not IsOpen
-                    local targetHeight = IsOpen and math.min(180, 46 + (#options * 32)) or 46
+                    local targetHeight = IsOpen and math.min(180, 42 + (#options * 28)) or 36
                     Tween(DropFrame, {Size = UDim2.new(1, 0, 0, targetHeight)}, 0.2)
-                    Tween(Stroke, {Color = IsOpen and Config.Colors.Primary or Config.Colors.Border}, 0.2)
                 end)
             end
 
