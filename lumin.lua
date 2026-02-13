@@ -432,6 +432,7 @@ function Library:Window(options)
         ZIndex = 0
     })
 
+    -- Tab System Container (ScrollingFrame)
     local TabContainer = Create("ScrollingFrame", {
         Parent = Sidebar,
         BackgroundTransparency = 1,
@@ -441,8 +442,32 @@ function Library:Window(options)
         ZIndex = 6
     })
     
-    local TabList = Create("UIListLayout", {
+    -- Add Padding to TabContainer
+    Create("UIPadding", {Parent = TabContainer, PaddingTop = UDim.new(0, 16)})
+
+    -- Shared Active Indicator (Animated)
+    -- This indicator sits outside the layout flow of buttons but inside the scrolling container
+    local ActiveIndicator = Create("Frame", {
         Parent = TabContainer,
+        BackgroundColor3 = Config.Colors.Primary,
+        Size = UDim2.new(0, 4, 0, 28), -- Fixed height (approx 60% of button height)
+        Position = UDim2.new(0, 0, 0, 9), -- Initial centered position relative to first button
+        ZIndex = 10,
+        Visible = false -- Hidden until first activation
+    })
+    Create("UICorner", {Parent = ActiveIndicator, CornerRadius = UDim.new(1, 0)})
+
+    -- Button Holder (Separated for UIListLayout)
+    local ButtonHolder = Create("Frame", {
+        Parent = TabContainer,
+        BackgroundTransparency = 1,
+        Size = UDim2.new(1, 0, 1, 0),
+        AutomaticSize = Enum.AutomaticSize.Y,
+        ZIndex = 7
+    })
+
+    local TabList = Create("UIListLayout", {
+        Parent = ButtonHolder,
         Padding = UDim.new(0, 4),
         SortOrder = Enum.SortOrder.LayoutOrder
     })
@@ -450,8 +475,6 @@ function Library:Window(options)
     TabList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         TabContainer.CanvasSize = UDim2.new(0, 0, 0, TabList.AbsoluteContentSize.Y + 20)
     end)
-    
-    Create("UIPadding", {Parent = TabContainer, PaddingTop = UDim.new(0, 16)})
 
     -- User Profile
     local UserContainer = Create("Frame", {
@@ -619,7 +642,7 @@ function Library:Window(options)
         -- Tab Button
         local Btn = Create("TextButton", {
             Name = name .. "_Tab",
-            Parent = TabContainer,
+            Parent = ButtonHolder, -- Parented to ButtonHolder now
             BackgroundTransparency = 1,
             Size = UDim2.new(1, 0, 0, 46),
             Text = "",
@@ -646,18 +669,8 @@ function Library:Window(options)
             Rotation = 0
         })
 
-        -- Active Indicator (Aesthetic: Rounded & Centered Pill)
-        local ActiveIndicator = Create("Frame", {
-            Parent = Btn,
-            BackgroundColor3 = Config.Colors.Primary,
-            Size = UDim2.new(0, 4, 0.6, 0), -- Reduced height (60%)
-            Position = UDim2.new(0, 0, 0.5, 0), -- Centered vertically
-            AnchorPoint = Vector2.new(0, 0.5),
-            BackgroundTransparency = 1,
-            BorderSizePixel = 0,
-            ZIndex = 9
-        })
-        Create("UICorner", {Parent = ActiveIndicator, CornerRadius = UDim.new(1, 0)})
+        -- Individual Active Indicator Removed
+        -- Used to be here, now we use the Shared ActiveIndicator
 
         local TabIcon = Create("ImageLabel", {
             Parent = Btn,
@@ -731,21 +744,30 @@ function Library:Window(options)
         })
         Create("UIListLayout", {Parent = RightCol, Padding = UDim.new(0, 16), SortOrder = Enum.SortOrder.LayoutOrder})
 
+        -- Current Index for this closure
+        local ThisTabIndex = TabCount
+
         local function Activate()
             CurrentTabName = name
             
             for _, t in pairs(Tabs) do
                 Tween(t.Icon, {ImageColor3 = Config.Colors.Muted}, 0.2)
                 Tween(t.Text, {TextColor3 = Config.Colors.Muted}, 0.2)
-                Tween(t.Ind, {BackgroundTransparency = 1}, 0.2)
+                -- Ind tween removed
                 Tween(t.Hover, {BackgroundTransparency = 1}, 0.2)
                 t.Page.Visible = false
             end
             
             Tween(TabIcon, {ImageColor3 = Config.Colors.Primary}, 0.3)
             Tween(TabText, {TextColor3 = Config.Colors.Text}, 0.3)
-            Tween(ActiveIndicator, {BackgroundTransparency = 0}, 0.3)
             Tween(Hover, {BackgroundTransparency = 0.9}, 0.3)
+            
+            -- Animate Sliding Indicator
+            ActiveIndicator.Visible = true
+            -- Calculation: (Index - 1) * (Height(46) + Padding(4)) + CenterOffset(9)
+            local targetY = ((ThisTabIndex - 1) * 50) + 9
+            Tween(ActiveIndicator, {Position = UDim2.new(0, 0, 0, targetY)}, 0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+            
             Page.Visible = true
             
             Page.Position = UDim2.new(0, 10, 0, 0)
@@ -754,7 +776,7 @@ function Library:Window(options)
         end
 
         Btn.MouseButton1Click:Connect(Activate)
-        table.insert(Tabs, {Icon = TabIcon, Text = TabText, Ind = ActiveIndicator, Hover = Hover, Page = Page})
+        table.insert(Tabs, {Icon = TabIcon, Text = TabText, Hover = Hover, Page = Page})
 
         if FirstTab then
             FirstTab = false
