@@ -1,11 +1,11 @@
 --[[
-    RLWSCRIPTS PREMIUM LIBRARY v2.9 (Full Release)
+    RLWSCRIPTS PREMIUM LIBRARY v2.9.5 (Smoother Hover Update)
     Design: React/Tailwind Port (1:1 Replica)
     Features: List Layout, Animated Dropdown, Smooth Animations
     Author: RLW System
 ]]
 
-print("[RLW LIB] Initializing Library v2.9...")
+print("[RLW LIB] Initializing Library v2.9.5...")
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -858,7 +858,7 @@ function Library:Window(options)
             BackgroundTransparency = 1,
             Image = icon or "rbxassetid://4483345998",
             ImageColor3 = Config.Colors.Muted,
-            Size = UDim2.new(0, 35, 0, 35),
+            Size = UDim2.new(0, 26, 0, 26),
             Position = UDim2.new(0, 20, 0.5, 0),
             AnchorPoint = Vector2.new(0, 0.5),
             ZIndex = 8
@@ -1425,17 +1425,17 @@ function Library:Window(options)
                             ZIndex = 23
                         })
                         
-                        -- Option Hover
+                        -- Option Hover (SMOOTHENED)
                         OptBtn.MouseEnter:Connect(function()
                             if not IsSelected then
-                                Tween(OptText, {TextColor3 = Config.Colors.Text}, 0.15)
-                                Tween(OptBtn, {BackgroundTransparency = 0.8, BackgroundColor3 = Config.Colors.Text}, 0.15)
+                                Tween(OptText, {TextColor3 = Config.Colors.Text}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+                                Tween(OptBtn, {BackgroundTransparency = 0.85, BackgroundColor3 = Config.Colors.Text}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
                             end
                         end)
                         OptBtn.MouseLeave:Connect(function()
                             if not IsSelected then
-                                Tween(OptText, {TextColor3 = Config.Colors.Muted}, 0.15)
-                                Tween(OptBtn, {BackgroundTransparency = 1}, 0.15)
+                                Tween(OptText, {TextColor3 = Config.Colors.Muted}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+                                Tween(OptBtn, {BackgroundTransparency = 1}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
                             end
                         end)
 
