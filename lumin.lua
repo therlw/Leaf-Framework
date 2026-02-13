@@ -362,7 +362,7 @@ function Library:Window(options)
             Create("TextLabel", {
                 Parent = RestoreBtn,
                 BackgroundTransparency = 1,
-                Text = "Reopen Script!",
+                Text = "Reopen GUI!",
                 TextColor3 = Config.Colors.Text,
                 Font = Config.BoldFont,
                 TextSize = 14,
