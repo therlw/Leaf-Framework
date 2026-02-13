@@ -1,10 +1,10 @@
 --[[
-    RLWSCRIPTS PREMIUM LIBRARY v2.3 (Shadow Removed & Perfect Corners)
+    RLWSCRIPTS PREMIUM LIBRARY v2.4 (Minimize Fix & Clean Restore)
     Design: React/Tailwind Port (1:1 Replica)
     Author: RLW System
 ]]
 
-print("[RLW LIB] Initializing Library v2.3...")
+print("[RLW LIB] Initializing Library v2.4...")
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -273,16 +273,16 @@ function Library:Window(options)
         FillDirection = Enum.FillDirection.Horizontal,
         HorizontalAlignment = Enum.HorizontalAlignment.Right,
         VerticalAlignment = Enum.VerticalAlignment.Center,
-        Padding = UDim.new(0, 12)
+        Padding = UDim.new(0, 8) -- Slightly reduced padding for tighter group
     })
 
-    -- Close Button
+    -- 3. Close Button (Rightmost)
     local CloseBtn = Create("TextButton", {
         Parent = Actions,
         BackgroundTransparency = 1,
         Text = "",
         Size = UDim2.new(0, 24, 0, 24),
-        LayoutOrder = 3, -- Changed to 3
+        LayoutOrder = 3, 
         ZIndex = 5
     })
     local CloseIcon = Create("ImageLabel", {
@@ -299,27 +299,30 @@ function Library:Window(options)
     CloseBtn.MouseLeave:Connect(function() Tween(CloseIcon, {ImageColor3 = Config.Colors.Muted}) end)
     CloseBtn.MouseButton1Click:Connect(function() GUI:Destroy() end)
 
-    -- Minimize Button
+    -- 2. Minimize Button (Middle)
     local MinimizeBtn = Create("TextButton", {
         Parent = Actions,
         BackgroundTransparency = 1,
         Text = "",
         Size = UDim2.new(0, 24, 0, 24),
-        LayoutOrder = 2, -- Between Status and Close
+        LayoutOrder = 2, 
         ZIndex = 5
     })
-    local MinIcon = Create("ImageLabel", {
+    
+    -- Draw a Minus Sign manually to ensure visibility without relying on asset IDs
+    local MinLine = Create("Frame", {
         Parent = MinimizeBtn,
-        BackgroundTransparency = 1,
-        Image = "rbxassetid://6031096991", -- Minus/Remove Icon
-        ImageColor3 = Config.Colors.Muted,
-        Size = UDim2.new(0, 18, 0, 18),
+        BackgroundColor3 = Config.Colors.Muted,
+        Size = UDim2.new(0, 14, 0, 2), -- 14px wide, 2px tall
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
+        BorderSizePixel = 0,
         ZIndex = 6
     })
-    MinimizeBtn.MouseEnter:Connect(function() Tween(MinIcon, {ImageColor3 = Config.Colors.Text}) end)
-    MinimizeBtn.MouseLeave:Connect(function() Tween(MinIcon, {ImageColor3 = Config.Colors.Muted}) end)
+    Create("UICorner", {Parent = MinLine, CornerRadius = UDim.new(1, 0)})
+    
+    MinimizeBtn.MouseEnter:Connect(function() Tween(MinLine, {BackgroundColor3 = Config.Colors.Text}) end)
+    MinimizeBtn.MouseLeave:Connect(function() Tween(MinLine, {BackgroundColor3 = Config.Colors.Muted}) end)
 
     -- Minimize Functionality
     local function ToggleMinimize()
@@ -332,7 +335,7 @@ function Library:Window(options)
             task.wait(0.35)
             Main.Visible = false
             
-            -- Create Restore Button
+            -- Create Restore Button (Clean, no glow layer)
             RestoreBtn = Create("TextButton", {
                 Parent = GUI,
                 BackgroundColor3 = Config.Colors.Surface,
@@ -344,20 +347,7 @@ function Library:Window(options)
                 ZIndex = 200
             })
             Create("UICorner", {Parent = RestoreBtn, CornerRadius = UDim.new(0, 12)})
-            Create("UIStroke", {Parent = RestoreBtn, Color = Config.Colors.Primary, Thickness = 1.5, Transparency = 0.5})
-            
-            -- Glow/Shadow for Restore Button
-            Create("ImageLabel", {
-                Parent = RestoreBtn,
-                BackgroundTransparency = 1,
-                Image = "rbxassetid://5028857472",
-                ImageColor3 = Config.Colors.Primary,
-                ImageTransparency = 0.8,
-                Size = UDim2.new(1, 40, 1, 40),
-                Position = UDim2.new(0.5, 0, 0.5, 0),
-                AnchorPoint = Vector2.new(0.5, 0.5),
-                ZIndex = 199
-            })
+            Create("UIStroke", {Parent = RestoreBtn, Color = Config.Colors.Primary, Thickness = 1.5}) -- Solid stroke
 
             local RIcon = Create("ImageLabel", {
                 Parent = RestoreBtn,
@@ -405,7 +395,7 @@ function Library:Window(options)
 
     MinimizeBtn.MouseButton1Click:Connect(ToggleMinimize)
 
-    -- Status Badge
+    -- 1. Status Badge (Leftmost)
     local StatusBadge = Create("Frame", {
         Parent = Actions,
         BackgroundColor3 = Config.Colors.SurfaceHighlight,
