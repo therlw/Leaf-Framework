@@ -1,10 +1,10 @@
 --[[
-    RLWSCRIPTS PREMIUM LIBRARY v2.4 (Minimize Fix & Clean Restore)
+    RLWSCRIPTS PREMIUM LIBRARY v2.5 (Layout Fix & Clean UI)
     Design: React/Tailwind Port (1:1 Replica)
     Author: RLW System
 ]]
 
-print("[RLW LIB] Initializing Library v2.4...")
+print("[RLW LIB] Initializing Library v2.5...")
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -273,10 +273,11 @@ function Library:Window(options)
         FillDirection = Enum.FillDirection.Horizontal,
         HorizontalAlignment = Enum.HorizontalAlignment.Right,
         VerticalAlignment = Enum.VerticalAlignment.Center,
-        Padding = UDim.new(0, 8) -- Slightly reduced padding for tighter group
+        Padding = UDim.new(0, 8), -- Slightly reduced padding for tighter group
+        SortOrder = Enum.SortOrder.LayoutOrder -- Added SortOrder to enforce correct button order
     })
 
-    -- 3. Close Button (Rightmost)
+    -- 3. Close Button (Rightmost, Order 3)
     local CloseBtn = Create("TextButton", {
         Parent = Actions,
         BackgroundTransparency = 1,
@@ -299,7 +300,7 @@ function Library:Window(options)
     CloseBtn.MouseLeave:Connect(function() Tween(CloseIcon, {ImageColor3 = Config.Colors.Muted}) end)
     CloseBtn.MouseButton1Click:Connect(function() GUI:Destroy() end)
 
-    -- 2. Minimize Button (Middle)
+    -- 2. Minimize Button (Middle, Order 2)
     local MinimizeBtn = Create("TextButton", {
         Parent = Actions,
         BackgroundTransparency = 1,
@@ -362,7 +363,7 @@ function Library:Window(options)
             Create("TextLabel", {
                 Parent = RestoreBtn,
                 BackgroundTransparency = 1,
-                Text = "Reopen GUI!",
+                Text = "Reopen Script!",
                 TextColor3 = Config.Colors.Text,
                 Font = Config.BoldFont,
                 TextSize = 14,
@@ -395,7 +396,7 @@ function Library:Window(options)
 
     MinimizeBtn.MouseButton1Click:Connect(ToggleMinimize)
 
-    -- 1. Status Badge (Leftmost)
+    -- 1. Status Badge (Leftmost, Order 1)
     local StatusBadge = Create("Frame", {
         Parent = Actions,
         BackgroundColor3 = Config.Colors.SurfaceHighlight,
