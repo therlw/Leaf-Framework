@@ -858,7 +858,7 @@ function Library:Window(options)
             BackgroundTransparency = 1,
             Image = icon or "rbxassetid://4483345998",
             ImageColor3 = Config.Colors.Muted,
-            Size = UDim2.new(0, 26, 0, 26),
+            Size = UDim2.new(0, 35, 0, 35),
             Position = UDim2.new(0, 20, 0.5, 0),
             AnchorPoint = Vector2.new(0, 0.5),
             ZIndex = 8
