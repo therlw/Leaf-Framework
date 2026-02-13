@@ -450,8 +450,8 @@ function Library:Window(options)
     local ActiveIndicator = Create("Frame", {
         Parent = TabContainer,
         BackgroundColor3 = Config.Colors.Primary,
-        Size = UDim2.new(0, 4, 0, 28), -- Fixed height (approx 60% of button height)
-        Position = UDim2.new(0, 0, 0, 9), -- Initial centered position relative to first button
+        Size = UDim2.new(0, 4, 0, 28), -- Fixed height (approx 85% of button height)
+        Position = UDim2.new(0, 0, 0, 2), -- Initial centered position relative to first button
         ZIndex = 10,
         Visible = false -- Hidden until first activation
     })
@@ -644,7 +644,7 @@ function Library:Window(options)
             Name = name .. "_Tab",
             Parent = ButtonHolder,
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 46),
+            Size = UDim2.new(1, 0, 0, 32), -- Adjusted height to 32px
             Text = "",
             AutoButtonColor = false,
             LayoutOrder = TabCount,
@@ -780,8 +780,8 @@ function Library:Window(options)
             
             -- Animate Sliding Indicator
             ActiveIndicator.Visible = true
-            -- Calculation: (Index - 1) * (Height(46) + Padding(4)) + CenterOffset(9)
-            local targetY = ((ThisTabIndex - 1) * 50) + 9
+            -- Calculation: (Index - 1) * (Height(32) + Padding(4)) + CenterOffset(2)
+            local targetY = ((ThisTabIndex - 1) * 36) + 2
             Tween(ActiveIndicator, {Position = UDim2.new(0, 0, 0, targetY)}, 0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
             
             Page.Visible = true
