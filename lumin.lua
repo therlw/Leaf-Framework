@@ -1,10 +1,11 @@
 --[[
-    RLWSCRIPTS PREMIUM LIBRARY v2.8 (List Layout Redesign)
+    RLWSCRIPTS PREMIUM LIBRARY v2.9 (Full Release)
     Design: React/Tailwind Port (1:1 Replica)
+    Features: List Layout, Animated Dropdown, Smooth Animations
     Author: RLW System
 ]]
 
-print("[RLW LIB] Initializing Library v2.8...")
+print("[RLW LIB] Initializing Library v2.9...")
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -260,7 +261,7 @@ function Library:Window(options)
         ZIndex = 5
     })
 
-    -- Game Info Badge (New Implementation)
+    -- Game Info Badge
     local GameBadge = Create("Frame", {
         Parent = Header,
         BackgroundColor3 = Config.Colors.SurfaceHighlight,
@@ -314,7 +315,6 @@ function Library:Window(options)
         
         if success and info then
             GameNameLabel.Text = TruncateText(info.Name, 20)
-            -- Fetch Game Icon (using rbxthumb)
             GameIcon.Image = "rbxthumb://type=GameIcon&id=" .. tostring(game.GameId) .. "&w=150&h=150"
         else
             GameNameLabel.Text = "Unknown Game"
@@ -1289,33 +1289,39 @@ function Library:Window(options)
                 local IsOpen = false
                 local Selection = default or options[1]
                 
+                -- Main Container
                 local DropFrame = Create("Frame", {
                     Parent = Container,
                     BackgroundTransparency = 1,
-                    Size = UDim2.new(1, 0, 0, 36), -- Default height
+                    Size = UDim2.new(1, 0, 0, 36), -- Compact height
                     ClipsDescendants = true,
                     ZIndex = 20
                 })
                 
+                -- Toggle Button (Header)
                 local HeaderBtn = Create("TextButton", {
                     Parent = DropFrame,
                     BackgroundTransparency = 1,
                     Size = UDim2.new(1, 0, 0, 36),
                     Text = "",
-                    ZIndex = 20
+                    AutoButtonColor = false,
+                    ZIndex = 21
                 })
                 
-                 -- Hover Effect
+                 -- Subtle Hover Effect
                 local Hover = Create("Frame", {
                     Parent = HeaderBtn,
                     BackgroundColor3 = Color3.fromRGB(255, 255, 255),
                     BackgroundTransparency = 1,
                     Size = UDim2.new(1, 0, 1, 0),
-                    ZIndex = 0
+                    ZIndex = 20
                 })
-                HeaderBtn.MouseEnter:Connect(function() Tween(Hover, {BackgroundTransparency = 0.97}, 0.2) end)
+                Create("UICorner", {Parent = Hover, CornerRadius = UDim.new(0, 6)}) -- Rounded hover
+                
+                HeaderBtn.MouseEnter:Connect(function() Tween(Hover, {BackgroundTransparency = 0.98}, 0.2) end)
                 HeaderBtn.MouseLeave:Connect(function() Tween(Hover, {BackgroundTransparency = 1}, 0.2) end)
 
+                -- Title
                 Create("TextLabel", {
                     Parent = HeaderBtn,
                     BackgroundTransparency = 1,
@@ -1324,59 +1330,128 @@ function Library:Window(options)
                     Font = Config.Font,
                     TextSize = 13,
                     Position = UDim2.new(0, 12, 0, 0),
-                    Size = UDim2.new(1, -40, 1, 0),
+                    Size = UDim2.new(0.5, 0, 1, 0),
                     TextXAlignment = Enum.TextXAlignment.Left,
-                    ZIndex = 20
+                    ZIndex = 22
+                })
+
+                -- Selection & Icon
+                local RightSide = Create("Frame", {
+                    Parent = HeaderBtn,
+                    BackgroundTransparency = 1,
+                    Position = UDim2.new(0.5, 0, 0, 0),
+                    Size = UDim2.new(0.5, -12, 1, 0),
+                    ZIndex = 22
+                })
+
+                local Chevron = Create("ImageLabel", {
+                    Parent = RightSide,
+                    BackgroundTransparency = 1,
+                    Image = "rbxassetid://6031090990", -- Arrow Down
+                    ImageColor3 = Config.Colors.Muted,
+                    Size = UDim2.new(0, 18, 0, 18),
+                    Position = UDim2.new(1, 0, 0.5, 0),
+                    AnchorPoint = Vector2.new(1, 0.5),
+                    ZIndex = 22
                 })
 
                 local SelLabel = Create("TextLabel", {
-                    Parent = HeaderBtn,
+                    Parent = RightSide,
                     BackgroundTransparency = 1,
-                    Text = Selection .. " ▼",
+                    Text = Selection,
                     TextColor3 = Config.Colors.Primary,
                     Font = Config.Font,
-                    TextSize = 13,
-                    Position = UDim2.new(0, 12, 0, 0),
+                    TextSize = 12,
+                    Position = UDim2.new(0, 0, 0, 0),
                     Size = UDim2.new(1, -24, 1, 0),
                     TextXAlignment = Enum.TextXAlignment.Right,
-                    ZIndex = 20
+                    ZIndex = 22
                 })
 
-                local List = Create("ScrollingFrame", {
+                -- Dropdown List Container
+                local ListContainer = Create("Frame", {
                     Parent = DropFrame,
                     BackgroundColor3 = Config.Colors.Background,
+                    BackgroundTransparency = 1, -- Starts transparent
                     Position = UDim2.new(0, 12, 0, 36),
-                    Size = UDim2.new(1, -24, 1, -40),
+                    Size = UDim2.new(1, -24, 0, 0),
+                    ClipsDescendants = true,
+                    ZIndex = 20
+                })
+                Create("UICorner", {Parent = ListContainer, CornerRadius = UDim.new(0, 6)})
+                local ListStroke = Create("UIStroke", {Parent = ListContainer, Color = Config.Colors.Border, Thickness = 1, Transparency = 1})
+
+                local ScrollList = Create("ScrollingFrame", {
+                    Parent = ListContainer,
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 1, 0),
                     CanvasSize = UDim2.new(0,0,0,0),
                     ScrollBarThickness = 2,
+                    ScrollBarImageColor3 = Config.Colors.Muted,
                     AutomaticCanvasSize = Enum.AutomaticSize.Y,
                     ZIndex = 21
                 })
-                Create("UICorner", {Parent = List, CornerRadius = UDim.new(0, 6)})
-                Create("UIStroke", {Parent = List, Color = Config.Colors.Border, Thickness = 1})
-                Create("UIListLayout", {Parent = List, SortOrder = Enum.SortOrder.LayoutOrder})
+                Create("UIPadding", {Parent = ScrollList, PaddingTop = UDim.new(0, 4), PaddingBottom = UDim.new(0, 4), PaddingLeft = UDim.new(0, 4), PaddingRight = UDim.new(0, 4)})
+                Create("UIListLayout", {Parent = ScrollList, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 2)})
 
                 local function RenderOptions()
-                    for _, c in pairs(List:GetChildren()) do if c:IsA("TextButton") then c:Destroy() end end
-                    for _, opt in pairs(options) do
+                    for _, c in pairs(ScrollList:GetChildren()) do if c:IsA("TextButton") then c:Destroy() end end
+                    
+                    for i, opt in ipairs(options) do
+                        local IsSelected = opt == Selection
+                        
                         local OptBtn = Create("TextButton", {
-                            Parent = List,
-                            BackgroundColor3 = Config.Colors.Surface,
-                            BackgroundTransparency = 0.2,
+                            Parent = ScrollList,
+                            BackgroundColor3 = IsSelected and Config.Colors.SurfaceHighlight or Config.Colors.Background,
+                            BackgroundTransparency = IsSelected and 0 or 1,
                             Size = UDim2.new(1, 0, 0, 28),
-                            Text = "  " .. opt,
-                            TextColor3 = opt == Selection and Config.Colors.Primary or Config.Colors.Muted,
-                            Font = Config.Font,
-                            TextSize = 12,
-                            TextXAlignment = Enum.TextXAlignment.Left,
+                            Text = "",
+                            AutoButtonColor = false,
+                            LayoutOrder = i,
                             ZIndex = 22
                         })
+                        Create("UICorner", {Parent = OptBtn, CornerRadius = UDim.new(0, 4)})
+                        
+                        local OptText = Create("TextLabel", {
+                            Parent = OptBtn,
+                            BackgroundTransparency = 1,
+                            Text = opt,
+                            TextColor3 = IsSelected and Config.Colors.Primary or Config.Colors.Muted,
+                            Font = Config.Font,
+                            TextSize = 12,
+                            Position = UDim2.new(0, 8, 0, 0),
+                            Size = UDim2.new(1, -16, 1, 0),
+                            TextXAlignment = Enum.TextXAlignment.Left,
+                            ZIndex = 23
+                        })
+                        
+                        -- Option Hover
+                        OptBtn.MouseEnter:Connect(function()
+                            if not IsSelected then
+                                Tween(OptText, {TextColor3 = Config.Colors.Text}, 0.15)
+                                Tween(OptBtn, {BackgroundTransparency = 0.8, BackgroundColor3 = Config.Colors.Text}, 0.15)
+                            end
+                        end)
+                        OptBtn.MouseLeave:Connect(function()
+                            if not IsSelected then
+                                Tween(OptText, {TextColor3 = Config.Colors.Muted}, 0.15)
+                                Tween(OptBtn, {BackgroundTransparency = 1}, 0.15)
+                            end
+                        end)
+
                         OptBtn.MouseButton1Click:Connect(function()
                             Selection = opt
-                            SelLabel.Text = Selection .. " ▼"
+                            SelLabel.Text = Selection
                             callback(Selection)
+                            
+                            -- Close Logic
                             IsOpen = false
-                            Tween(DropFrame, {Size = UDim2.new(1, 0, 0, 36)}, 0.2)
+                            Tween(DropFrame, {Size = UDim2.new(1, 0, 0, 36)}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+                            Tween(Chevron, {Rotation = 0, ImageColor3 = Config.Colors.Muted}, 0.3)
+                            Tween(ListStroke, {Transparency = 1}, 0.3)
+                            Tween(ListContainer, {BackgroundTransparency = 1}, 0.3)
+                            Tween(SelLabel, {TextColor3 = Config.Colors.Primary}, 0.3)
+                            
                             RenderOptions()
                         end)
                     end
@@ -1385,8 +1460,28 @@ function Library:Window(options)
 
                 HeaderBtn.MouseButton1Click:Connect(function()
                     IsOpen = not IsOpen
-                    local targetHeight = IsOpen and math.min(180, 42 + (#options * 28)) or 36
-                    Tween(DropFrame, {Size = UDim2.new(1, 0, 0, targetHeight)}, 0.2)
+                    
+                    local ItemHeight = 28
+                    local Padding = 2
+                    local ListHeight = (#options * (ItemHeight + Padding)) + 8 -- +8 for container padding
+                    local MaxHeight = 160
+                    local TargetListHeight = math.min(ListHeight, MaxHeight)
+                    
+                    if IsOpen then
+                        -- Open
+                        Tween(DropFrame, {Size = UDim2.new(1, 0, 0, 36 + TargetListHeight + 6)}, 0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+                        Tween(ListContainer, {Size = UDim2.new(1, -24, 0, TargetListHeight), BackgroundTransparency = 0}, 0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+                        Tween(Chevron, {Rotation = 180, ImageColor3 = Config.Colors.Text}, 0.3)
+                        Tween(ListStroke, {Transparency = 0.5}, 0.3)
+                        Tween(SelLabel, {TextColor3 = Config.Colors.Text}, 0.3)
+                    else
+                        -- Close
+                        Tween(DropFrame, {Size = UDim2.new(1, 0, 0, 36)}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+                        Tween(ListContainer, {Size = UDim2.new(1, -24, 0, 0), BackgroundTransparency = 1}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+                        Tween(Chevron, {Rotation = 0, ImageColor3 = Config.Colors.Muted}, 0.3)
+                        Tween(ListStroke, {Transparency = 1}, 0.3)
+                        Tween(SelLabel, {TextColor3 = Config.Colors.Primary}, 0.3)
+                    end
                 end)
             end
 
