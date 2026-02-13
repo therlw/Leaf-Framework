@@ -1,10 +1,10 @@
 --[[
-    RLWSCRIPTS PREMIUM LIBRARY v2.6 (Game Badge Added)
+    RLWSCRIPTS PREMIUM LIBRARY v2.7 (Icon Fixes)
     Design: React/Tailwind Port (1:1 Replica)
     Author: RLW System
 ]]
 
-print("[RLW LIB] Initializing Library v2.6...")
+print("[RLW LIB] Initializing Library v2.7...")
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -858,8 +858,8 @@ function Library:Window(options)
             BackgroundTransparency = 1,
             Image = icon or "rbxassetid://4483345998",
             ImageColor3 = Config.Colors.Muted,
-            Size = UDim2.new(0, 20, 0, 20),
-            Position = UDim2.new(0, 24, 0.5, 0),
+            Size = UDim2.new(0, 26, 0, 26),
+            Position = UDim2.new(0, 20, 0.5, 0),
             AnchorPoint = Vector2.new(0, 0.5),
             ZIndex = 8
         })
@@ -939,7 +939,7 @@ function Library:Window(options)
                 t.Page.Visible = false
             end
             
-            Tween(TabIcon, {ImageColor3 = Config.Colors.Primary}, 0.3)
+            Tween(TabIcon, {ImageColor3 = Color3.new(1, 1, 1)}, 0.3)
             Tween(TabText, {TextColor3 = Config.Colors.Text}, 0.3)
             Tween(ActiveEffect, {BackgroundTransparency = 0}, 0.3) -- Show this gradient (0 transparency means UIGradient takes over)
             
