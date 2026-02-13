@@ -1,10 +1,10 @@
 --[[
-    RLWSCRIPTS PREMIUM LIBRARY v2.5 (Layout Fix & Clean UI)
+    RLWSCRIPTS PREMIUM LIBRARY v2.6 (Game Badge Added)
     Design: React/Tailwind Port (1:1 Replica)
     Author: RLW System
 ]]
 
-print("[RLW LIB] Initializing Library v2.5...")
+print("[RLW LIB] Initializing Library v2.6...")
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -12,6 +12,7 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
 local HttpService = game:GetService("HttpService")
+local MarketplaceService = game:GetService("MarketplaceService")
 
 --// Library Configuration & Colors
 local Library = {}
@@ -259,7 +260,69 @@ function Library:Window(options)
         ZIndex = 5
     })
 
-    -- Header Actions
+    -- Game Info Badge (New Implementation)
+    local GameBadge = Create("Frame", {
+        Parent = Header,
+        BackgroundColor3 = Config.Colors.SurfaceHighlight,
+        Size = UDim2.new(0, 0, 0, 24), -- Same height as updated badge
+        Position = UDim2.new(0, 180, 0.5, 0), -- Positioned right after LogoContainer
+        AnchorPoint = Vector2.new(0, 0.5),
+        ZIndex = 5
+    })
+    Create("UICorner", {Parent = GameBadge, CornerRadius = UDim.new(0, 6)})
+    Create("UIStroke", {Parent = GameBadge, Color = Config.Colors.Border, Thickness = 1})
+
+    local GameBadgeLayout = Create("UIListLayout", {
+        Parent = GameBadge,
+        FillDirection = Enum.FillDirection.Horizontal,
+        VerticalAlignment = Enum.VerticalAlignment.Center,
+        Padding = UDim.new(0, 8),
+        HorizontalAlignment = Enum.HorizontalAlignment.Center
+    })
+    Create("UIPadding", {Parent = GameBadge, PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 10)})
+
+    -- Game Icon
+    local GameIcon = Create("ImageLabel", {
+        Parent = GameBadge,
+        BackgroundTransparency = 1,
+        Image = "rbxasset://textures/ui/GuiImagePlaceholder.png", -- Fallback
+        Size = UDim2.new(0, 16, 0, 16),
+        ZIndex = 6
+    })
+    Create("UICorner", {Parent = GameIcon, CornerRadius = UDim.new(0, 4)})
+
+    -- Game Name Text
+    local GameNameLabel = Create("TextLabel", {
+        Parent = GameBadge,
+        BackgroundTransparency = 1,
+        Text = "Loading...",
+        TextColor3 = Config.Colors.Text,
+        Font = Config.BoldFont,
+        TextSize = 11,
+        AutomaticSize = Enum.AutomaticSize.X,
+        Size = UDim2.new(0, 0, 1, 0),
+        ZIndex = 6
+    })
+    
+    GameBadge.AutomaticSize = Enum.AutomaticSize.X
+
+    -- Fetch Game Info Async
+    spawn(function()
+        local success, info = pcall(function()
+            return MarketplaceService:GetProductInfo(game.PlaceId)
+        end)
+        
+        if success and info then
+            GameNameLabel.Text = TruncateText(info.Name, 20)
+            -- Fetch Game Icon (using rbxthumb)
+            GameIcon.Image = "rbxthumb://type=GameIcon&id=" .. tostring(game.GameId) .. "&w=150&h=150"
+        else
+            GameNameLabel.Text = "Unknown Game"
+        end
+    end)
+
+
+    -- Header Actions (Right Side)
     local Actions = Create("Frame", {
         Parent = Header,
         BackgroundTransparency = 1,
