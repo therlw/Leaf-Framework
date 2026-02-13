@@ -642,7 +642,7 @@ function Library:Window(options)
         -- Tab Button
         local Btn = Create("TextButton", {
             Name = name .. "_Tab",
-            Parent = ButtonHolder, -- Parented to ButtonHolder now
+            Parent = ButtonHolder,
             BackgroundTransparency = 1,
             Size = UDim2.new(1, 0, 0, 46),
             Text = "",
@@ -651,7 +651,7 @@ function Library:Window(options)
             ZIndex = 7
         })
 
-        -- Hover Background
+        -- Hover Background (Standard hover)
         local Hover = Create("Frame", {
             Parent = Btn,
             BackgroundColor3 = Config.Colors.Text,
@@ -669,8 +669,24 @@ function Library:Window(options)
             Rotation = 0
         })
 
-        -- Individual Active Indicator Removed
-        -- Used to be here, now we use the Shared ActiveIndicator
+        -- Active Background Effect (Gradient Fade from Left to Right)
+        -- Matches React: opacity-10 bg-gradient-to-r from-primary to-transparent
+        local ActiveEffect = Create("Frame", {
+            Parent = Btn,
+            BackgroundColor3 = Config.Colors.Primary,
+            BackgroundTransparency = 1, -- Default hidden
+            Size = UDim2.new(1, 0, 1, 0),
+            BorderSizePixel = 0,
+            ZIndex = 6
+        })
+        Create("UIGradient", {
+            Parent = ActiveEffect,
+            Rotation = 0,
+            Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 0.9), -- Left side 10% visible (0.9 transparency)
+                NumberSequenceKeypoint.new(1, 1)    -- Right side invisible (1.0 transparency)
+            })
+        })
 
         local TabIcon = Create("ImageLabel", {
             Parent = Btn,
@@ -696,10 +712,10 @@ function Library:Window(options)
             ZIndex = 8
         })
         
-        -- Hover Events (Smooth Animation)
+        -- Hover Events
         Btn.MouseEnter:Connect(function()
             if CurrentTabName ~= name then
-                Tween(Hover, {BackgroundTransparency = 0.96}, 0.2) -- Very subtle hover
+                Tween(Hover, {BackgroundTransparency = 0.96}, 0.2)
                 Tween(TabText, {TextColor3 = Config.Colors.Text}, 0.2)
                 Tween(TabIcon, {ImageColor3 = Config.Colors.Text}, 0.2)
             end
@@ -753,14 +769,14 @@ function Library:Window(options)
             for _, t in pairs(Tabs) do
                 Tween(t.Icon, {ImageColor3 = Config.Colors.Muted}, 0.2)
                 Tween(t.Text, {TextColor3 = Config.Colors.Muted}, 0.2)
-                -- Ind tween removed
                 Tween(t.Hover, {BackgroundTransparency = 1}, 0.2)
+                Tween(t.ActiveEffect, {BackgroundTransparency = 1}, 0.2) -- Hide other gradients
                 t.Page.Visible = false
             end
             
             Tween(TabIcon, {ImageColor3 = Config.Colors.Primary}, 0.3)
             Tween(TabText, {TextColor3 = Config.Colors.Text}, 0.3)
-            Tween(Hover, {BackgroundTransparency = 0.9}, 0.3)
+            Tween(ActiveEffect, {BackgroundTransparency = 0}, 0.3) -- Show this gradient (0 transparency means UIGradient takes over)
             
             -- Animate Sliding Indicator
             ActiveIndicator.Visible = true
@@ -776,7 +792,13 @@ function Library:Window(options)
         end
 
         Btn.MouseButton1Click:Connect(Activate)
-        table.insert(Tabs, {Icon = TabIcon, Text = TabText, Hover = Hover, Page = Page})
+        table.insert(Tabs, {
+            Icon = TabIcon, 
+            Text = TabText, 
+            Hover = Hover, 
+            ActiveEffect = ActiveEffect, 
+            Page = Page
+        })
 
         if FirstTab then
             FirstTab = false
